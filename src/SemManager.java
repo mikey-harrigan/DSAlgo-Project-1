@@ -8,8 +8,8 @@
 /**
  * The class containing the main method.
  *
- * @author {Your Name Here}
- * @version {Put Something Here}
+ * @author mikeyh sffisher
+ * @version MILESTONE 1
  */
 
 // On my honor:
