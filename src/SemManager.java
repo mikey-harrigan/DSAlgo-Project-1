@@ -9,7 +9,7 @@
  * The class containing the main method.
  *
  * @author mikeyh sffisher
- * @version MILESTONE 1
+ * @version MILESTONE 2
  */
 
 // On my honor:
@@ -33,11 +33,38 @@
 
 public class SemManager {
     /**
+     * Begins program to handle input, storage, and retrieval of
+     * information pertaining to Seminars.
+     * 
+     * Initializes the database and passes it to CommandProcessor,
+     * which itself does the input and retrieval.
+     * 
      * @param args
-     *            Command line parameters
+     *            Command line arguments
+     *            [mem_size, hash_size, command_file]
      */
     public static void main(String[] args) {
-        // This is the main file for the program.
-        Seminar dum = new Seminar();
+        int mem_size = Integer.parseInt(args[0]);
+        int hash_size = Integer.parseInt(args[1]);
+        String command_file = args[2];
+
+        // Check invalid mem_size argument
+        if (mem_size <= 0 ||
+        // Returns invalid if mem_size is not a power of two
+            !((mem_size & -mem_size) == mem_size)) {
+            System.out.println("ERROR: Invalid memory size.");
+            return;
+        }
+        // Check invalid hash_size argument
+        if (hash_size <= 0 ||
+        // Returns invalid if hash_size is not a power of two
+            !((hash_size & -hash_size) == hash_size)) {
+            System.out.println("ERROR: Invalid hash size.");
+            return;
+        }
+
+        SeminarDB database = new SeminarDB(mem_size, hash_size);
+        CommandProcessor processor = new CommandProcessor(database,
+            command_file);
     }
 }
