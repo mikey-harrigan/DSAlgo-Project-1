@@ -34,29 +34,67 @@ public class CommandProcessor {
             if (this_line.replaceAll("\\s", "") == "") {
                 continue;
             }
-            
+
             // Identify the type of command
             String command = this_line.substring(0, this_line.indexOf(" "));
-            
+
+            // Handles the insert command
             if (command.equals("insert")) {
                 // This is the Seminar data to be parsed
                 int id, length, cost = 0;
                 String title, description, date = "";
                 short x_coord, y_coord = 0;
                 String[] keywords;
-                
+
                 // Parse first two lines of command
                 id = Integer.parseInt(this_line.substring(6).trim());
                 title = scan.nextLine();
-                
+
                 // Parse third line of command
                 // Note: this line contains 5 different data
                 String[] complex_line = scan.nextLine().split("\\s+");
                 date = complex_line[0];
                 length = Integer.parseInt(complex_line[1]);
-                x_coord = (short) Integer.parseInt(complex_line[2]);
-                y_coord = (short) Integer.parseInt(complex_line[3]);
+                x_coord = (short)Integer.parseInt(complex_line[2]);
+                y_coord = (short)Integer.parseInt(complex_line[3]);
                 cost = Integer.parseInt(complex_line[4]);
+
+                // Parse final two lines of command
+                keywords = scan.nextLine().split("\\s+");
+                description = scan.nextLine().trim();
+
+                // Call SeminarDB's insert command using these data
+                if (!(database.insert(id, title, date, length, x_coord, y_coord,
+                    cost, keywords, description))) {
+                    // Error if repeat ID attempts insert
+                    System.out.println("Insert failed due to repeat ID.");
+                }
+            }
+            
+            // Handles the "delete" command
+            if (command.equals("delete")) {
+                int id = Integer.parseInt(this_line.substring(6).trim());
+                
+                // Call SeminarDB's delete command
+                if (!(database.delete(id))) {
+                    // Error if ID is not in database
+                    System.out.println("Delete failed due to missing ID.");
+                }
+            }
+            
+            // Handles the "search" command
+            if (command.equals("search")) {
+                
+            }
+            
+            // Handles the "print hashtable" command
+            if (command.equals("print hashtable")) {
+                
+            }
+            
+            // Handles the "print blocks" command
+            if (command.equals("print blocks")) {
+                
             }
         }
     }
