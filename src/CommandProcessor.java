@@ -64,37 +64,32 @@ public class CommandProcessor {
                 description = scan.nextLine().trim();
 
                 // Call SeminarDB's insert command using these data
-                if (!(database.insert(id, title, date, length, x_coord, y_coord,
-                    cost, keywords, description))) {
-                    // Error if repeat ID attempts insert
-                    System.out.println("Insert failed due to repeat ID.");
-                }
+                database.command_insert(id, title, date, length, x_coord,
+                    y_coord, cost, keywords, description);
             }
-            
+
             // Handles the "delete" command
             if (command.equals("delete")) {
                 int id = Integer.parseInt(this_line.substring(6).trim());
-                
-                // Call SeminarDB's delete command
-                if (!(database.delete(id))) {
-                    // Error if ID is not in database
-                    System.out.println("Delete failed due to missing ID.");
-                }
+
+                database.command_delete(id);
             }
-            
+
             // Handles the "search" command
             if (command.equals("search")) {
-                
+                int id = Integer.parseInt(this_line.substring(6).trim());
+
+                database.command_search(id);
             }
-            
+
             // Handles the "print hashtable" command
             if (command.equals("print hashtable")) {
-                
+                database.command_phash();
             }
-            
+
             // Handles the "print blocks" command
             if (command.equals("print blocks")) {
-                
+                database.command_pblocks();
             }
         }
     }

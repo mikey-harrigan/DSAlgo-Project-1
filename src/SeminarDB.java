@@ -10,6 +10,8 @@
  *
  */
 public class SeminarDB {
+    private HashTable hash;
+    private MemoryManager mem;
 
     /**
      * Default constructor is called by SemManager
@@ -20,6 +22,9 @@ public class SeminarDB {
      *            the size of the HashTable
      */
     public SeminarDB(int memory_size, int hashtable_size) {
-
+        hash = new HashTable(hashtable_size);
+        mem = new MemoryManager(memory_size);
+        
+        
     }
 }
