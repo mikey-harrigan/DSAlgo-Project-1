@@ -135,4 +135,12 @@ public class Seminar implements Serializable {
             ", Length: " + length + ", X: " + x + ", Y: " + y + ", Cost: "
             + cost + "\nDescription: " + desc + "\nKeywords: " + mykeys;
     }
+    
+    /**
+     * @return the Id of a seminar object
+     */
+    public int getID()
+    {
+        return id;
+    }
 }
