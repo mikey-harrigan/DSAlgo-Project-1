@@ -27,6 +27,7 @@ public class HashTable {
      */
     public HashTable(int initialSize) {
         table = new Record[initialSize];// creates new Array of Record objects
+        // all slots initialized to null
         hashTableSize = initialSize;
         openSlots = initialSize;
 
@@ -36,12 +37,12 @@ public class HashTable {
     /**
      * creates the key associated with a Seminar Object ID
      * 
-     * @param recordID
-     *            The ID of a seminar object
-     * @return The key associated with the ID
+     * @param recordKey
+     *            The key associated with a record object
+     * @return The index associated with the record key
      */
-    public int hashFunction(int recordID) {
-        return recordID % hashTableSize;
+    public int hashFunction(int recordKey) {
+        return recordKey % hashTableSize;
     }
 
 
@@ -49,12 +50,12 @@ public class HashTable {
      * second has function that creates a key associated with a seminar object
      * ID
      * 
-     * @param recordID
-     *            the ID of a seminar Object
-     * @return the key associated with the ID
+     * @param the
+     *            key associated with a Record object
+     * @return the index associated with the record key
      */
-    public int hashFunction2(int recordID) {
-        return (((recordID / hashTableSize) % (hashTableSize / 2)) * 2) + 1;
+    public int hashFunction2(int recordKey) {
+        return (((recordKey / hashTableSize) % (hashTableSize / 2)) * 2) + 1;
     }
 
 
@@ -68,8 +69,10 @@ public class HashTable {
         return null;
     }
 
+
     /**
      * returns Record object at given index in the Table
+     * 
      * @param index
      * @return
      */
@@ -81,35 +84,43 @@ public class HashTable {
             return table[index];
         }
     }
+    
 
 
     /**
      * insert method for HashTable
-     * @param seminar will take a seminar, create a Record Object
-     * using the seminar and add it to the hash table
-     * @return boolean true if add was successful. 
+     * 
+     * @param seminar
+     *            will take a seminar, create a Record Object
+     *            using the seminar and add it to the hash table
+     * @return boolean true if add was successful.
      * 
      */
-    public boolean insert(Seminar seminar) { // incomplete method 
+    public boolean insert(Seminar seminar) { // incomplete method
         int id = seminar.getID();
         int index = hashFunction(id);
-        if (retrieveRecord(index) == null &&) {
-            Record newRecord = new Record(seminar);
-            table[index] = newRecord;
-            newRecord.setRecordKey(index);
+        if (openSlots <= hashTableSize / 2) {
+            doubleSize();
+            insert(seminar);
+        }
+        else if (retrieveRecord(index) == null) {
+            Record record = new Record(seminar);
+            table[index] = record;
+            openSlots--;
             return true;
         }
         else if (retrieveRecord(index) != null) {
-            index = hashFunction2(id);
-            if(retrieveRecord(index) == null)
+            while (retrieveRecord(index) != null) 
             {
-                Record newRecord = new Record(seminar);
-                table[index] = newRecord;
-                newRecord.setRecordKey(index);
-                return true;
+                index = index + hashFunction2(id);
             }
-            
+            Record record = new Record(seminar);
+            table[index] = record;
+            openSlots--;
+            return true;
         }
-        return true;
+        return false;
+        
+
     }
 }
