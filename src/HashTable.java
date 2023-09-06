@@ -85,6 +85,32 @@ public class HashTable {
         }
     }
     
+    public boolean search(int key)
+    {
+        int index = hashFunction(key);
+        if(table[index] == null)
+        {
+            return false;
+        }
+        else if(table[index].getRecordKey()==key)
+        {
+            return true;
+        }
+        
+        else
+        {
+            while(table[index].getRecordKey()!=key)
+            {
+                index = index + hashFunction2(key);
+                if(table[index] == null)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+    }
 
 
     /**
@@ -96,15 +122,19 @@ public class HashTable {
      * @return boolean true if add was successful.
      * 
      */
-    public boolean insert(Seminar seminar) { // incomplete method
-        int id = seminar.getID();
+    public boolean insert(int id, String title, String date, int length, short x_coord, short y_coord,
+        int cost, String[] keywords, String description) { // incomplete method
         int index = hashFunction(id);
+        if(search(id) == false)
+        {
+            return false;
+        }
         if (openSlots <= hashTableSize / 2) {
             doubleSize();
-            insert(seminar);
+            insert(id, title, date, length, x_coord, y_coord, cost, keywords, description);
         }
         else if (retrieveRecord(index) == null) {
-            Record record = new Record(seminar);
+            Record record = new Record(id);
             table[index] = record;
             openSlots--;
             return true;
@@ -114,7 +144,7 @@ public class HashTable {
             {
                 index = index + hashFunction2(id);
             }
-            Record record = new Record(seminar);
+            Record record = new Record(id);
             table[index] = record;
             openSlots--;
             return true;

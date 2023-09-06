@@ -18,10 +18,10 @@ public class Record {
      * @param seminar the seminar for which the record is storing the 
      * memory location of 
      */
-    public Record(Seminar seminar)
+    public Record(int id)
     {
         // the ID of a seminar record
-        recordKey = seminar.getID();
+        recordKey = id;
         startByte = 0;
         recordLength = 0;
         
@@ -42,5 +42,9 @@ public class Record {
     public void setRecordKey(int newKey)
     {
         recordKey = newKey;
+    }
+    public void printRecord()
+    {
+     System.out.println(this.getRecordKey());   
     }
 }
