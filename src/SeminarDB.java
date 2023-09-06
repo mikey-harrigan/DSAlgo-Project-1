@@ -24,7 +24,39 @@ public class SeminarDB {
     public SeminarDB(int memory_size, int hashtable_size) {
         hash = new HashTable(hashtable_size);
         mem = new MemoryManager(memory_size);
+    }
+
+
+    public void command_insert(
+        int id,
+        String title,
+        String date,
+        int length,
+        short x_coord,
+        short y_coord,
+        int cost,
+        String[] keywords,
+        String description) {
         
-        
+    }
+
+
+    public void command_delete(int id) {
+
+    }
+
+
+    public void command_search(int id) {
+
+    }
+
+
+    public void command_phash() {
+
+    }
+
+
+    public void command_pblocks() {
+
     }
 }

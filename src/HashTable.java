@@ -1,170 +1,204 @@
-public class HashTable {
-
 import java.util.Arrays;
 
-/*
- * class that stores the hash table data structure and functionalities.
- * will create an Array of Record Objects which include a Key for that record
- * and a handle that points to the Seminar Data in the memory pool.
+/**
+ * The HashTable class keeps track of Records of seminars,
+ * though it does not store the Seminars themselves.
  * 
+ * Expansion threshold is 1/2, and double hashing is used.
+ * 
+ * 
+ * @author mikeyh sffisher
+ * @version MILESTONE 2
  */
 public class HashTable {
-
-    // the current size of the hash table
-    private int hashTableSize;
-    // the number current open slots in the hash table
-    private int openSlots;
+    private int size;
+    private int numElements;
     Record[] table;
 
     /**
-     * constructor for the hash table, is initialized to the size
-     * specified in the command line argument read in SemManager.
-     * initializes an array of Record objects which store the key, and handle
-     * of a Seminar Object. hashTablesize and openSlots are both initialized to
-     * initialSize of table.
+     * Default constructor creates a Record array filled with null entries
      * 
      * @param initialSize
-     *            the initial size of the hash table specified in seminar
-     *            manager
+     *            the initial size of the hash table
      */
     public HashTable(int initialSize) {
-        table = new Record[initialSize];// creates new Array of Record objects
-        // all slots initialized to null
-        hashTableSize = initialSize;
-        openSlots = initialSize;
-
+        size = initialSize;
+        table = new Record[size];
+        numElements = 0;
     }
 
 
     /**
-     * creates the key associated with a Seminar Object ID
+     * This is the first hash function used.
      * 
      * @param recordKey
-     *            The key associated with a record object
-     * @return The index associated with the record key
+     *            the ID / key of a record
+     * 
+     * @return int
+     *         the index to be checked first
      */
-    public int hashFunction(int recordKey) {
-        return recordKey % hashTableSize;
+    private int h1(int recordKey) {
+        return recordKey % size;
     }
 
 
     /**
-     * second has function that creates a key associated with a seminar object
-     * ID
+     * This is the second hash function used.
+     * That is, it provides the number of indices to step between search
+     * attempts.
      * 
-     * @param the
-     *            key associated with a Record object
-     * @return the index associated with the record key
+     * @param recordKey
+     *            the ID / key of a record
+     * @return int
+     *         the number of indices to step between search attempts
      */
-    public int hashFunction2(int recordKey) {
-        return (((recordKey / hashTableSize) % (hashTableSize / 2)) * 2) + 1;
+    private int h2(int recordKey) {
+        return (((recordKey / size) % (size / 2)) * 2) + 1;
     }
 
 
     /**
-     * used to double the size of a hash table once it meets
-     * 50% capacity
-     * 
-     * @return new rehashed table
+     * This function expands and re-hashes the HashTable
      */
-    public HashTable doubleSize() { // incomplete method
+    private void expand() { // incomplete method
+        return;
+    }
+
+
+    /**
+     * Searches if the Seminar with [key] ID is in the HashTable
+     * 
+     * @param key
+     *            the ID to be searched
+     * @return Record
+     *         the Record if it is found
+     *         null if it is not found
+     */
+    public Record search(int key) {
+
+        // First-try index
+        int index = h1(key);
+
+        // Keep going until empty slot is found
+        while (table[index] != null) {
+            // Success if found
+            if (table[index].getRecordKey() == key) {
+                System.out.println("Successfully inserted record with ID "
+                    + key);
+                return table[index];
+            }
+
+            // Record is not found; iterate index
+            index = (index + h2(key)) % size;
+        }
+
+        // If not found, print failure message
+        System.out.println("Search FAILED -- There is no record with ID "
+            + key);
         return null;
     }
 
 
     /**
-     * returns Record object at given index in the Table
+     * Inserts the Record into its appropriate spot in the HashTable
+     * using double hashing, and doubling HashTable size if necessary.
      * 
-     * @param index
-     * @return
+     * @param entry
+     *            the Record to be inserted
+     * @return boolean
+     *         true if success
+     *         false if failure
+     * 
      */
-    public Record retrieveRecord(int index) {
-        if (table[index] == null) {
-            return null;
+    public boolean insert(Record entry) {
+        // If expand threshold is met, expand the HashTable
+        if (this.numElements == size / 2) {
+            expand();
         }
-        else {
-            return table[index];
-        }
-    }
 
+        int key = entry.getRecordKey();
 
-    public boolean search(int key) {
+        // Start with the first hash function
+        int index = h1(key);
 
-        int index = hashFunction(key);
-        // if the first index checked is empty
-        if (table[index] == null) {
-            return false;
-        }
-        // if the first index checked has the same key
-        else if (table[index].getRecordKey() == key) {
-            return true;
-        }
-        // if the first index checked results in a collision
-        else {
-            // loops until there is a matching key or until
-            // it probes to an open slot, meaning the id is not already
-            // in the table
-            while (table[index].getRecordKey() != key) {
-                index = index + hashFunction2(key);
-                if (table[index] == null) {
-                    return false;
-                }
+        // Keep iterating until an appropriate spot is found
+        while (table[index] != null) {
+            // Do not allow duplicate entries
+            if (table[index].getRecordKey() == key) {
+                System.out.println(
+                    "Insert FAILED - There is already a record with ID " + key);
+                return false;
             }
-            return true;
+
+            // Continue stepping by h2(key) indices
+            index = (index + h2(key)) % size;
         }
 
+        // Add this Record into this slot
+        table[index] = entry;
+        numElements++;
+
+        System.out.println("Successfully inserted record with ID " + key);
+        return true;
     }
 
 
     /**
-     * insert method for HashTable
+     * Removes a Record from the HashTable, setting it to a TOMBSTONE,
+     * which essentially is a Record object with an ID of -1.
      * 
-     * @param seminar
-     *            will take a seminar, create a Record Object
-     *            using the seminar and add it to the hash table
-     * @return boolean true if add was successful.
-     * 
+     * @param key
+     *            the ID of the Record to be removed
+     * @return boolean
+     *         true if Record is found & removed
+     *         false if Record is not found
      */
-    public boolean insert(
-        int id,
-        String title,
-        String date,
-        int length,
-        short x_coord,
-        short y_coord,
-        int cost,
-        String[] keywords,
-        String description) { // incomplete method
-        int index = hashFunction(id);
-        // in the case an ID is already in the hash table
-        if (search(id) == true) {
-            return false;
-        }
-        // in the case the hash table is too small
-        if (openSlots <= hashTableSize / 2) {
-            doubleSize();
-            insert(id, title, date, length, x_coord, y_coord, cost, keywords,
-                description);
-        }
-        // in the case the first index does not provide a collision.
-        else if (retrieveRecord(index) == null) {
-            Record record = new Record(id);
-            table[index] = record;
-            openSlots--;
-            return true;
-        } // if the first index checked results in a collision
-          // uses second hash function to probe to next open slot
-        else if (retrieveRecord(index) != null) {
-            while (retrieveRecord(index) != null) {
-                index = index + hashFunction2(id);
-            }
-            Record record = new Record(id);
-            table[index] = record;
-            openSlots--;
-            return true;
-        }
-        // if the record cant be added for whatever reason.
-        return false;
+    public boolean delete(int key) {
+        int index = h1(key);
 
+        while (table[index] != null) {
+            // Record is found
+            if (table[index] == key) {
+                table[index].tombstone();
+                this.numElements--;
+
+                System.out.println("Record with ID " + key
+                    + " successfully deleted from the database");
+                return true;
+            }
+        }
+
+        System.out.println("Delete FAILED -- There is no record with ID "
+            + key);
+        return false;
     }
+
+
+    /**
+     * Prints the contents of the HashTable in the following format:
+     * 
+     * Hashtable:
+     * 1: 1
+     * 2: 2
+     * 3: 3
+     * 5: 10
+     * total records: 4
+     * 
+     * Note that entries are printed as [index]: [ID]
+     */
+    public void print() {
+        // Header
+        System.out.println("Hashtable:");
+
+        for (int i = 0; i < size; i++) {
+            // If neither empty nor TOMBSTONE, print line
+            if (table[i] != null && table[i].getRecordKey() != -1) {
+                System.out.println(i + ": " + table[i].getRecordKey());
+            }
+        }
+
+        // Footer
+        System.out.println("total records: " + numElements);
+    }
+
 }

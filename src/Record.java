@@ -53,4 +53,14 @@ public class Record {
     public void printRecord() {
         System.out.println(this.getRecordKey());
     }
+    
+    /**
+     * Turn this Record into a TOMBSTONE.
+     */
+    public void tombstone() {
+        recordKey = -1;
+        startByte = 0;
+        recordLength = 0;
+    }
 }
+
