@@ -84,32 +84,33 @@ public class HashTable {
             return table[index];
         }
     }
-    
-    public boolean search(int key)
-    {
+
+
+    public boolean search(int key) {
+
         int index = hashFunction(key);
-        if(table[index] == null)
-        {
+        // if the first index checked is empty
+        if (table[index] == null) {
             return false;
         }
-        else if(table[index].getRecordKey()==key)
-        {
+        // if the first index checked has the same key
+        else if (table[index].getRecordKey() == key) {
             return true;
         }
-        
-        else
-        {
-            while(table[index].getRecordKey()!=key)
-            {
+        // if the first index checked results in a collision
+        else {
+            // loops until there is a matching key or until
+            // it probes to an open slot, meaning the id is not already
+            // in the table
+            while (table[index].getRecordKey() != key) {
                 index = index + hashFunction2(key);
-                if(table[index] == null)
-                {
+                if (table[index] == null) {
                     return false;
                 }
             }
             return true;
         }
-        
+
     }
 
 
@@ -122,26 +123,37 @@ public class HashTable {
      * @return boolean true if add was successful.
      * 
      */
-    public boolean insert(int id, String title, String date, int length, short x_coord, short y_coord,
-        int cost, String[] keywords, String description) { // incomplete method
+    public boolean insert(
+        int id,
+        String title,
+        String date,
+        int length,
+        short x_coord,
+        short y_coord,
+        int cost,
+        String[] keywords,
+        String description) { // incomplete method
         int index = hashFunction(id);
-        if(search(id) == false)
-        {
+        // in the case an ID is already in the hash table
+        if (search(id) == true) {
             return false;
         }
+        // in the case the hash table is too small
         if (openSlots <= hashTableSize / 2) {
             doubleSize();
-            insert(id, title, date, length, x_coord, y_coord, cost, keywords, description);
+            insert(id, title, date, length, x_coord, y_coord, cost, keywords,
+                description);
         }
+        // in the case the first index does not provide a collision.
         else if (retrieveRecord(index) == null) {
             Record record = new Record(id);
             table[index] = record;
             openSlots--;
             return true;
-        }
+        } // if the first index checked results in a collision
+          // uses second hash function to probe to next open slot
         else if (retrieveRecord(index) != null) {
-            while (retrieveRecord(index) != null) 
-            {
+            while (retrieveRecord(index) != null) {
                 index = index + hashFunction2(id);
             }
             Record record = new Record(id);
@@ -149,8 +161,8 @@ public class HashTable {
             openSlots--;
             return true;
         }
+        // if the record cant be added for whatever reason.
         return false;
-        
 
     }
 }
