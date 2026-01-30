@@ -863,14 +863,14 @@
             </div>
             <div class="slider-group">
                 <div class="slider-label">
-                    <span class="slider-name">Home Advantage (NCSU needs it)</span>
-                    <span class="slider-value" id="homeAdvVal">-3.9</span>
+                    <span class="slider-name">Home Advantage (Only way NCSU competes)</span>
+                    <span class="slider-value" id="homeAdvVal">0</span>
                 </div>
-                <input type="range" id="homeAdv" min="-10" max="10" step="0.1" value="-3.9">
+                <input type="range" id="homeAdv" min="-10" max="10" step="0.1" value="0">
             </div>
             <div class="slider-group">
                 <div class="slider-label">
-                    <span class="slider-name">Unsportsmanlike -1pt (Pack specialty)</span>
+                    <span class="slider-name">Ugly Zuko Special -1pt</span>
                     <span class="slider-value" id="unsportMinusVal">1%</span>
                 </div>
                 <input type="range" id="unsportMinus" min="0" max="10" step="0.5" value="1">
@@ -882,7 +882,7 @@
                 </div>
                 <input type="range" id="unsportPlus" min="0" max="10" step="0.5" value="5">
             </div>
-            <button class="btn-reset" onclick="resetAll()">Reset All (Unlike NC State's Season)</button>
+            <button class="btn-reset" onclick="resetAll()">Reset (Can't Reset Pat Pop's Face Though)</button>
         </div>
 
         <div class="card">
@@ -890,7 +890,7 @@
                 <div class="card-icon chart">📈</div>
                 <div>
                     <div class="card-title">VT Win Probability Timeline</div>
-                    <div class="card-subtitle">Watch NC State's hopes slowly die</div>
+                    <div class="card-subtitle">Watching idiots lose in real time</div>
                 </div>
             </div>
             <div class="timeline-chart" id="timelineChart"></div>
@@ -901,7 +901,7 @@
                 <div class="card-icon chart">📊</div>
                 <div>
                     <div class="card-title">Score Differential Distribution</div>
-                    <div class="card-subtitle">More orange = more tears in Raleigh</div>
+                    <div class="card-subtitle">Every bar is another reason Pat Pop regrets that beard</div>
                 </div>
             </div>
             <div class="bar-chart" id="diffChart"></div>
@@ -912,7 +912,7 @@
                 <div class="card-icon matches">🤼</div>
                 <div>
                     <div class="card-title">Match Outcomes</div>
-                    <div class="card-subtitle">Click to lock in results (VT wins recommended)</div>
+                    <div class="card-subtitle">Document NCSU's humiliation one match at a time</div>
                 </div>
             </div>
             <div class="match-list" id="matchList"></div>
@@ -923,7 +923,7 @@
                 <div class="card-icon paths">🎯</div>
                 <div>
                     <div class="card-title">Most Likely Paths</div>
-                    <div class="card-subtitle">Spoiler: Most end with VT winning</div>
+                    <div class="card-subtitle">All roads lead to Raleigh crying</div>
                 </div>
             </div>
             <div id="topPaths"></div>
@@ -934,7 +934,7 @@
                 <div class="card-icon" style="background:rgba(255,184,28,0.2);">📋</div>
                 <div>
                     <div class="card-title">Prediction Calibration</div>
-                    <div class="card-subtitle">Tracking how badly NC State underperforms</div>
+                    <div class="card-subtitle">Math proving what we already knew about this dumb team</div>
                 </div>
             </div>
             <table class="calibration-table" id="calibrationTable"></table>
@@ -965,59 +965,59 @@ let realized = new Array(10).fill(null);
 
 // Trash talk arrays
 const VT_WIN_TAUNTS = [
-    "LETS GOOOOO HOKIES! 🦃",
-    "Pack your bags, Wolfpack!",
-    "Another L for Raleigh!",
-    "NC State? More like NC LATE to the podium!",
-    "The Wolfpack just became the Woofpack!",
-    "Raleigh is crying rn",
-    "That's what happens when you wrestle a real program!",
-    "GOBBLE GOBBLE ON THAT",
-    "Hokie Stone > Whatever NC State's made of",
-    "VT BY WAY OF DOMINATION"
+    "Pat Pop stroking that disgusting beard in confusion",
+    "Back to Raleigh, back to irrelevance",
+    "The only thing uglier than that loss is Pat Pop's facial hair",
+    "NCSU: where wrestlers go to get dumber",
+    "Imagine driving to Raleigh for this",
+    "Tell Pat Pop his barber called - still laughing",
+    "Raleigh is genuinely one of the worst places on earth",
+    "That's what happens when your coach looks like an unwashed goat",
+    "Even the NCSU students stopped watching. Both of them.",
+    "Another L to match those godforsaken dorms"
 ];
 
 const NCSU_WIN_TAUNTS = [
-    "Ugh... even a broken wolf is right twice a day",
-    "Fluke. Absolute fluke.",
-    "The refs must be blind",
-    "Enjoy this moment, it won't last",
-    "Pack got lucky... as usual",
-    "Whatever, we're still winning the dual",
-    "Even a blind squirrel finds a nut",
-    "Must be nice to have home refs"
+    "Pat Pop's beard grew another inch of ugly from that",
+    "Even a room temperature IQ team gets one occasionally",
+    "Congrats, still stuck in Raleigh though",
+    "That's the highlight of their entire semester",
+    "Cool win, still no one attractive on that campus",
+    "Their one moment of joy before returning to that dump",
+    "A win won't fix that godforsaken school",
+    "Temporary happiness in a permanently miserable place"
 ];
 
 const SCORE_TAUNTS_VT_WINNING = [
-    "NC State fans in shambles",
-    "The Wolfpack is more like a Puppy Pack today",
-    "Raleigh tears fueling our victory",
-    "This is what a real wrestling program looks like",
-    "Pack it up, Pack",
-    "Hokies just built different"
+    "Pat Pop nervously combing that atrocity on his face",
+    "The combined IQ of their roster couldn't solve this",
+    "Somewhere in Raleigh, an ugly person is crying",
+    "This is what happens when you recruit from NCSU's gene pool",
+    "Their fans left to go stare at a parking lot or whatever they do there",
+    "Beating a team as dumb as they are ugly"
 ];
 
 const SCORE_TAUNTS_NCSU_WINNING = [
-    "Temporary setback. We got this.",
-    "Just warming up...",
-    "They can't keep getting away with this... wait, they won't",
-    "Even down, Hokies fight"
+    "Temporary. Unlike how permanently ugly Raleigh is.",
+    "Even their lead is as weak as Pat Pop's jawline under that beard",
+    "Enjoy it. Then go back to that wasteland.",
+    "A lead won't make their campus any less depressing"
 ];
 
 const SCORE_TAUNTS_TIE = [
-    "All tied up - but not for long",
-    "VT about to pull away",
-    "NC State's best case: a tie. Sad."
+    "Tied with a team this stupid? Embarrassing.",
+    "Even a tie means they have to go back to Raleigh",
+    "A tie is the best they can hope for, like dating at NCSU"
 ];
 
 const HEADER_TRASH_TALK = [
-    '"NC State: Where dreams go to lose to Tech"',
-    '"Wolfpack? More like Woofpack"',
-    '"The only thing NC State is #1 at is losing to us"',
-    '"Raleigh: A great place to watch VT win"',
-    '"NC State wrestling: Making VT look good since forever"',
-    '"Red? More like dead (their hopes)"',
-    '"Pack fans, there\'s still basketball... oh wait"'
+    '"Pat Pop grew that beard to hide his weak chin, didn\'t work"',
+    '"NCSU: where the students are as ugly as the campus"',
+    '"Raleigh: proof God makes mistakes"',
+    '"Their roster shares one brain cell and it\'s on life support"',
+    '"Pat Pop\'s beard looks like he glued pubes to his face"',
+    '"NCSU girls have to import dates from other schools"',
+    '"The only thing dumber than their team is anyone who chose to go there"'
 ];
 
 // Audio context for sounds
@@ -1508,7 +1508,7 @@ function updateTopPaths() {
         const winnerEmoji = winner === 'VT' ? ' 🦃' : winner === 'NCSU' ? ' 🐺' : '';
         html += '<div class="path-item"><div class="path-outcomes">' + oStr + '</div><div class="path-result"><div class="path-score">' + path.vt + '-' + path.ncsu + ' ' + winner + winnerEmoji + '</div><div class="path-prob">' + (path.prob*100).toFixed(2) + '%</div></div></div>';
     }
-    document.getElementById('topPaths').innerHTML = html || '<div style="color:#666">No paths (NC State\'s season in a nutshell)</div>';
+    document.getElementById('topPaths').innerHTML = html || '<div style="color:#666">No paths, much like NCSU students\' futures</div>';
 }
 
 function updateCalibration() {
@@ -1584,7 +1584,7 @@ function updateCalibration() {
 
         summaryHtml += '<div style="width:100%;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:0.6rem;color:var(--text-muted);text-align:center;">Brier: 0 = perfect, 0.25 = random. &lt;0.08 excellent, 0.08-0.15 good, 0.15-0.25 fair</div>';
     } else {
-        summaryHtml = '<div style="color:var(--text-muted);font-size:0.7rem;">Lock in match outcomes to see calibration stats (and watch NC State lose)</div>';
+        summaryHtml = '<div style="color:var(--text-muted);font-size:0.7rem;">Lock in outcomes to quantify how stupid NCSU really is</div>';
     }
 
     document.getElementById('calibrationSummary').innerHTML = summaryHtml;
@@ -1620,7 +1620,7 @@ function toggleOutcome(m, o) {
 
 function resetAll() {
     realized = new Array(10).fill(null);
-    document.getElementById('homeAdv').value = -3.9;
+    document.getElementById('homeAdv').value = 0;
     document.getElementById('unsportMinus').value = 1;
     document.getElementById('unsportPlus').value = 5;
     updateAll();
