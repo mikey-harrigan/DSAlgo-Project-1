@@ -185,7 +185,7 @@
         /* Stats Cards */
         .stats-row {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 8px;
             margin-bottom: 16px;
         }
@@ -836,9 +836,9 @@
                 <div class="stat-label ncsu-label">Pack L Prob</div>
                 <div class="stat-value ncsu" id="ncsuWin">40.0%</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" style="display:none;">
                 <div class="stat-label">Tie</div>
-                <div class="stat-value tie" id="tieProb">4.8%</div>
+                <div class="stat-value tie" id="tieProb">0%</div>
             </div>
             <div class="stat-card">
                 <div class="stat-label">Exp Diff</div>
@@ -1004,11 +1004,7 @@ const SCORE_TAUNTS_NCSU_WINNING = [
     "A lead won't make their campus any less depressing"
 ];
 
-const SCORE_TAUNTS_TIE = [
-    "Tied with a team this stupid? Embarrassing.",
-    "Even a tie means they have to go back to Raleigh",
-    "A tie is the best they can hope for, like dating at NCSU"
-];
+// No ties in wrestling
 
 const HEADER_TRASH_TALK = [
     '"Pat Pop grew that beard to hide his weak chin, didn\'t work"',
@@ -1183,7 +1179,10 @@ function calcWinProbs(diffProbs) {
         if (diff > 0) vt += p; else if (diff < 0) ncsu += p; else tie += p;
         exp += diff * p;
     }
-    return {vt, ncsu, tie, exp};
+    // No ties in wrestling - split between teams
+    vt += tie / 2;
+    ncsu += tie / 2;
+    return {vt, ncsu, tie: 0, exp};
 }
 
 function getCurrentScore() {
@@ -1200,12 +1199,10 @@ function getCurrentScore() {
 function updateScoreTaunt(vtScore, ncsuScore) {
     const tauntEl = document.getElementById('scoreTaunt');
     let taunts;
-    if (vtScore > ncsuScore) {
+    if (vtScore >= ncsuScore) {
         taunts = SCORE_TAUNTS_VT_WINNING;
-    } else if (ncsuScore > vtScore) {
-        taunts = SCORE_TAUNTS_NCSU_WINNING;
     } else {
-        taunts = SCORE_TAUNTS_TIE;
+        taunts = SCORE_TAUNTS_NCSU_WINNING;
     }
     tauntEl.textContent = taunts[Math.floor(Math.random() * taunts.length)];
 }
