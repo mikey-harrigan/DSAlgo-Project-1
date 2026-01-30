@@ -598,6 +598,92 @@
             font-weight: 600;
         }
 
+        /* Calibration Table */
+        .calibration-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.7rem;
+        }
+
+        .calibration-table th {
+            background: var(--bg-elevated);
+            padding: 8px 6px;
+            text-align: center;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.6rem;
+            letter-spacing: 0.5px;
+        }
+
+        .calibration-table td {
+            padding: 8px 6px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .calibration-table tr:hover td {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .calibration-table .weight-col {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            color: var(--hokie-orange);
+        }
+
+        .calibration-table .wrestler-col {
+            text-align: left;
+            font-size: 0.65rem;
+        }
+
+        .calibration-table .vt-name { color: var(--hokie-orange); }
+        .calibration-table .ncsu-name { color: var(--ncsu-red); }
+
+        .calibration-table .predicted {
+            color: var(--text-secondary);
+        }
+
+        .calibration-table .actual {
+            font-weight: 600;
+        }
+
+        .calibration-table .actual.vt { color: var(--hokie-orange); }
+        .calibration-table .actual.ncsu { color: var(--ncsu-red); }
+        .calibration-table .actual.pending { color: var(--text-muted); }
+
+        .calibration-table .status-icon {
+            font-size: 0.8rem;
+        }
+
+        .calibration-table .status-icon.correct { color: var(--success); }
+        .calibration-table .status-icon.wrong { color: var(--ncsu-red); }
+
+        .calibration-summary {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            font-size: 0.75rem;
+        }
+
+        .calibration-stat {
+            text-align: center;
+        }
+
+        .calibration-stat .label {
+            color: var(--text-muted);
+            font-size: 0.6rem;
+            text-transform: uppercase;
+        }
+
+        .calibration-stat .value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            color: var(--hokie-orange);
+        }
+
         /* Footer */
         .footer {
             text-align: center;
@@ -710,6 +796,15 @@
                 <div class="card-title">Most Likely Paths</div>
             </div>
             <div id="topPaths"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon" style="background:rgba(255,184,28,0.2);">📋</div>
+                <div class="card-title">Prediction Calibration</div>
+            </div>
+            <table class="calibration-table" id="calibrationTable"></table>
+            <div class="calibration-summary" id="calibrationSummary"></div>
         </div>
     </div>
 
@@ -828,6 +923,7 @@ function updateAll() {
     updateDiffChart(adjDiff);
     updateMatchList();
     updateTopPaths();
+    updateCalibration();
 }
 
 function updateDiffChart(diffProbs) {
@@ -1121,6 +1217,83 @@ function updateTopPaths() {
         html += '<div class="path-item"><div class="path-outcomes">' + oStr + '</div><div class="path-result"><div class="path-score">' + path.vt + '-' + path.ncsu + ' ' + winner + '</div><div class="path-prob">' + (path.prob*100).toFixed(2) + '%</div></div></div>';
     }
     document.getElementById('topPaths').innerHTML = html || '<div style="color:#666">No paths</div>';
+}
+
+function updateCalibration() {
+    let tableHtml = '<tr><th>Wt</th><th>Matchup</th><th>VT Win %</th><th>Predicted</th><th>Actual</th><th></th></tr>';
+
+    let totalPredicted = 0;
+    let totalCorrect = 0;
+    let matchesResolved = 0;
+    let brierScore = 0;
+
+    for (let m = 0; m < 10; m++) {
+        const match = MATCHES[m];
+
+        // Calculate VT win probability for this match (sum of VT win outcomes)
+        let vtWinProb = 0;
+        for (let o = 4; o < 8; o++) {
+            vtWinProb += match.probs[o];
+        }
+
+        // Determine predicted winner
+        const predictedWinner = vtWinProb >= 50 ? 'VT' : 'NCSU';
+        const predictedProb = vtWinProb >= 50 ? vtWinProb : (100 - vtWinProb);
+
+        // Determine actual outcome if realized
+        let actualStr = '<span class="actual pending">—</span>';
+        let statusStr = '';
+
+        if (realized[m] !== null) {
+            matchesResolved++;
+            const outcome = OUTCOMES[realized[m]];
+            const actualWinner = outcome > 0 ? 'VT' : 'NCSU';
+            const actualCls = outcome > 0 ? 'vt' : 'ncsu';
+            actualStr = '<span class="actual ' + actualCls + '">' + actualWinner + ' (' + (outcome > 0 ? '+' : '') + outcome + ')</span>';
+
+            // Check if prediction was correct
+            const correct = predictedWinner === actualWinner;
+            if (correct) {
+                totalCorrect++;
+                statusStr = '<span class="status-icon correct">✓</span>';
+            } else {
+                statusStr = '<span class="status-icon wrong">✗</span>';
+            }
+
+            // Brier score component
+            const actualVTWin = outcome > 0 ? 1 : 0;
+            brierScore += Math.pow((vtWinProb / 100) - actualVTWin, 2);
+            totalPredicted += vtWinProb >= 50 ? vtWinProb : (100 - vtWinProb);
+        }
+
+        tableHtml += '<tr>' +
+            '<td class="weight-col">' + match.weight + '</td>' +
+            '<td class="wrestler-col"><span class="vt-name">' + match.vt + '</span><br><span class="ncsu-name">' + match.ncsu + '</span></td>' +
+            '<td class="predicted">' + vtWinProb.toFixed(0) + '%</td>' +
+            '<td class="predicted">' + predictedWinner + ' (' + predictedProb.toFixed(0) + '%)</td>' +
+            '<td>' + actualStr + '</td>' +
+            '<td>' + statusStr + '</td>' +
+            '</tr>';
+    }
+
+    document.getElementById('calibrationTable').innerHTML = tableHtml;
+
+    // Summary stats
+    let summaryHtml = '';
+    if (matchesResolved > 0) {
+        const accuracy = (totalCorrect / matchesResolved * 100).toFixed(0);
+        const avgConf = (totalPredicted / matchesResolved).toFixed(1);
+        const brier = (brierScore / matchesResolved).toFixed(3);
+
+        summaryHtml = '<div class="calibration-stat"><div class="label">Resolved</div><div class="value">' + matchesResolved + '/10</div></div>' +
+            '<div class="calibration-stat"><div class="label">Accuracy</div><div class="value">' + accuracy + '%</div></div>' +
+            '<div class="calibration-stat"><div class="label">Avg Conf</div><div class="value">' + avgConf + '%</div></div>' +
+            '<div class="calibration-stat"><div class="label">Brier</div><div class="value">' + brier + '</div></div>';
+    } else {
+        summaryHtml = '<div style="color:var(--text-muted);font-size:0.7rem;">Lock in match outcomes to see calibration stats</div>';
+    }
+
+    document.getElementById('calibrationSummary').innerHTML = summaryHtml;
 }
 
 function toggleOutcome(m, o) { realized[m] = realized[m] === o ? null : o; updateAll(); }
