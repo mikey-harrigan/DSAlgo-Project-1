@@ -33,6 +33,90 @@
             line-height: 1.5;
         }
 
+        /* Confetti Container */
+        #confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: fall 3s linear forwards;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Sad overlay for NCSU wins */
+        .sad-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeSad 2s forwards;
+            pointer-events: none;
+        }
+
+        .sad-text {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            color: var(--ncsu-red);
+            text-shadow: 0 0 20px rgba(204,0,0,0.8);
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes fadeSad {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        /* Victory overlay */
+        .victory-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9998;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: var(--hokie-orange);
+            text-shadow: 0 0 30px rgba(229,117,31,0.8), 0 0 60px rgba(229,117,31,0.4);
+            animation: victoryPop 2s forwards;
+            pointer-events: none;
+            text-align: center;
+        }
+
+        @keyframes victoryPop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            40% { transform: translate(-50%, -50%) scale(1); }
+            70% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+
         /* Header */
         .header {
             background: linear-gradient(135deg, var(--hokie-dark) 0%, var(--hokie-maroon) 50%, var(--hokie-dark) 100%);
@@ -83,6 +167,14 @@
             font-weight: 500;
         }
 
+        .trash-talk {
+            font-size: 0.65rem;
+            color: var(--hokie-orange);
+            font-style: italic;
+            margin-top: 4px;
+            opacity: 0.9;
+        }
+
         /* Main Content */
         .container {
             max-width: 600px;
@@ -130,6 +222,8 @@
             font-weight: 600;
             margin-bottom: 4px;
         }
+
+        .stat-label.ncsu-label { font-size: 0.55rem; }
 
         .stat-value {
             font-family: 'Bebas Neue', sans-serif;
@@ -179,6 +273,12 @@
             font-weight: 600;
             font-size: 0.9rem;
             color: var(--text-primary);
+        }
+
+        .card-subtitle {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-style: italic;
         }
 
         /* Sliders */
@@ -272,6 +372,13 @@
         .score-value .vt { color: var(--hokie-orange); }
         .score-value .ncsu { color: #FF6666; }
         .score-value .dash { color: rgba(255,255,255,0.5); margin: 0 8px; }
+
+        .score-taunt {
+            font-size: 0.7rem;
+            color: var(--hokie-orange);
+            margin-top: 8px;
+            font-style: italic;
+        }
 
         /* Distribution Bars */
         .bar-chart {
@@ -405,6 +512,12 @@
             background: var(--hokie-orange) !important;
             border-color: white !important;
             box-shadow: 0 4px 12px rgba(229,117,31,0.4);
+        }
+
+        .outcome-btn.selected.ncsu-selected {
+            background: var(--ncsu-red) !important;
+            border-color: #FF6666 !important;
+            box-shadow: 0 4px 12px rgba(204,0,0,0.4);
         }
 
         .outcome-btn.selected .btn-label,
@@ -662,6 +775,7 @@
         .calibration-summary {
             display: flex;
             justify-content: space-around;
+            flex-wrap: wrap;
             margin-top: 12px;
             padding-top: 12px;
             border-top: 1px solid var(--border);
@@ -693,16 +807,20 @@
         }
 
         .footer span { color: var(--hokie-orange); }
+        .footer .hate { color: var(--ncsu-red); text-decoration: line-through; }
     </style>
 </head>
 <body>
+    <div id="confetti-container"></div>
+
     <div class="header">
         <div class="header-content">
             <div class="logo-row">
                 <div class="vt-logo">VT</div>
                 <div>
-                    <h1>HOKIES VS WOLFPACK</h1>
+                    <h1>HOKIES VS THE INFERIOR WOLFPACK</h1>
                     <div class="subtitle">Wrestling Dual Probability Analysis • 1.07B Paths Computed</div>
+                    <div class="trash-talk" id="headerTrashTalk">"NC State: Where dreams go to lose to Tech"</div>
                 </div>
             </div>
         </div>
@@ -715,7 +833,7 @@
                 <div class="stat-value vt" id="vtWin">55.2%</div>
             </div>
             <div class="stat-card ncsu">
-                <div class="stat-label">NCSU Win</div>
+                <div class="stat-label ncsu-label">Pack L Prob</div>
                 <div class="stat-value ncsu" id="ncsuWin">40.0%</div>
             </div>
             <div class="stat-card">
@@ -735,6 +853,7 @@
                 <span class="dash">—</span>
                 <span class="ncsu" id="ncsuScore">0</span>
             </div>
+            <div class="score-taunt" id="scoreTaunt"></div>
         </div>
 
         <div class="card">
@@ -744,14 +863,14 @@
             </div>
             <div class="slider-group">
                 <div class="slider-label">
-                    <span class="slider-name">Home Advantage (NCSU)</span>
+                    <span class="slider-name">Home Advantage (NCSU needs it)</span>
                     <span class="slider-value" id="homeAdvVal">-3.9</span>
                 </div>
                 <input type="range" id="homeAdv" min="-10" max="10" step="0.1" value="-3.9">
             </div>
             <div class="slider-group">
                 <div class="slider-label">
-                    <span class="slider-name">Unsportsmanlike -1pt</span>
+                    <span class="slider-name">Unsportsmanlike -1pt (Pack specialty)</span>
                     <span class="slider-value" id="unsportMinusVal">1%</span>
                 </div>
                 <input type="range" id="unsportMinus" min="0" max="10" step="0.5" value="1">
@@ -763,13 +882,16 @@
                 </div>
                 <input type="range" id="unsportPlus" min="0" max="10" step="0.5" value="5">
             </div>
-            <button class="btn-reset" onclick="resetAll()">Reset All</button>
+            <button class="btn-reset" onclick="resetAll()">Reset All (Unlike NC State's Season)</button>
         </div>
 
         <div class="card">
             <div class="card-header">
                 <div class="card-icon chart">📈</div>
-                <div class="card-title">VT Win Probability Timeline</div>
+                <div>
+                    <div class="card-title">VT Win Probability Timeline</div>
+                    <div class="card-subtitle">Watch NC State's hopes slowly die</div>
+                </div>
             </div>
             <div class="timeline-chart" id="timelineChart"></div>
         </div>
@@ -777,7 +899,10 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-icon chart">📊</div>
-                <div class="card-title">Score Differential Distribution</div>
+                <div>
+                    <div class="card-title">Score Differential Distribution</div>
+                    <div class="card-subtitle">More orange = more tears in Raleigh</div>
+                </div>
             </div>
             <div class="bar-chart" id="diffChart"></div>
         </div>
@@ -785,7 +910,10 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-icon matches">🤼</div>
-                <div class="card-title">Match Outcomes</div>
+                <div>
+                    <div class="card-title">Match Outcomes</div>
+                    <div class="card-subtitle">Click to lock in results (VT wins recommended)</div>
+                </div>
             </div>
             <div class="match-list" id="matchList"></div>
         </div>
@@ -793,7 +921,10 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-icon paths">🎯</div>
-                <div class="card-title">Most Likely Paths</div>
+                <div>
+                    <div class="card-title">Most Likely Paths</div>
+                    <div class="card-subtitle">Spoiler: Most end with VT winning</div>
+                </div>
             </div>
             <div id="topPaths"></div>
         </div>
@@ -801,7 +932,10 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-icon" style="background:rgba(255,184,28,0.2);">📋</div>
-                <div class="card-title">Prediction Calibration</div>
+                <div>
+                    <div class="card-title">Prediction Calibration</div>
+                    <div class="card-subtitle">Tracking how badly NC State underperforms</div>
+                </div>
             </div>
             <table class="calibration-table" id="calibrationTable"></table>
             <div class="calibration-summary" id="calibrationSummary"></div>
@@ -809,7 +943,7 @@
     </div>
 
     <div class="footer">
-        Built with <span>♥</span> for Virginia Tech Wrestling • Go Hokies!
+        Built with <span>♥</span> for Virginia Tech Wrestling • Go Hokies! • <span class="hate">NC State</span>
     </div>
 
 <script>
@@ -828,6 +962,170 @@ const MATCHES = [
 const OUTCOMES = [-6, -5, -4, -3, 3, 4, 5, 6];
 const LABELS = ["-6", "-5", "-4", "-3", "+3", "+4", "+5", "+6"];
 let realized = new Array(10).fill(null);
+
+// Trash talk arrays
+const VT_WIN_TAUNTS = [
+    "LETS GOOOOO HOKIES! 🦃",
+    "Pack your bags, Wolfpack!",
+    "Another L for Raleigh!",
+    "NC State? More like NC LATE to the podium!",
+    "The Wolfpack just became the Woofpack!",
+    "Raleigh is crying rn",
+    "That's what happens when you wrestle a real program!",
+    "GOBBLE GOBBLE ON THAT",
+    "Hokie Stone > Whatever NC State's made of",
+    "VT BY WAY OF DOMINATION"
+];
+
+const NCSU_WIN_TAUNTS = [
+    "Ugh... even a broken wolf is right twice a day",
+    "Fluke. Absolute fluke.",
+    "The refs must be blind",
+    "Enjoy this moment, it won't last",
+    "Pack got lucky... as usual",
+    "Whatever, we're still winning the dual",
+    "Even a blind squirrel finds a nut",
+    "Must be nice to have home refs"
+];
+
+const SCORE_TAUNTS_VT_WINNING = [
+    "NC State fans in shambles",
+    "The Wolfpack is more like a Puppy Pack today",
+    "Raleigh tears fueling our victory",
+    "This is what a real wrestling program looks like",
+    "Pack it up, Pack",
+    "Hokies just built different"
+];
+
+const SCORE_TAUNTS_NCSU_WINNING = [
+    "Temporary setback. We got this.",
+    "Just warming up...",
+    "They can't keep getting away with this... wait, they won't",
+    "Even down, Hokies fight"
+];
+
+const SCORE_TAUNTS_TIE = [
+    "All tied up - but not for long",
+    "VT about to pull away",
+    "NC State's best case: a tie. Sad."
+];
+
+const HEADER_TRASH_TALK = [
+    '"NC State: Where dreams go to lose to Tech"',
+    '"Wolfpack? More like Woofpack"',
+    '"The only thing NC State is #1 at is losing to us"',
+    '"Raleigh: A great place to watch VT win"',
+    '"NC State wrestling: Making VT look good since forever"',
+    '"Red? More like dead (their hopes)"',
+    '"Pack fans, there\'s still basketball... oh wait"'
+];
+
+// Audio context for sounds
+let audioCtx = null;
+function getAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+}
+
+function playVictorySound() {
+    try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        // Triumphant fanfare
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = freq;
+            osc.type = 'square';
+            gain.gain.setValueAtTime(0.15, now + i * 0.1);
+            gain.gain.exponentialDecayTo && gain.gain.exponentialDecayTo(0.01, now + i * 0.1 + 0.3);
+            gain.gain.setValueAtTime(0.15, now + i * 0.1);
+            gain.gain.linearRampToValueAtTime(0.01, now + i * 0.1 + 0.4);
+            osc.start(now + i * 0.1);
+            osc.stop(now + i * 0.1 + 0.4);
+        });
+    } catch(e) { console.log('Audio not supported'); }
+}
+
+function playSadSound() {
+    try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        // Sad trombone: Bb, A, Ab, G descending
+        const notes = [466.16, 440, 415.30, 392];
+        notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = freq;
+            osc.type = 'sawtooth';
+            gain.gain.setValueAtTime(0.1, now + i * 0.35);
+            gain.gain.linearRampToValueAtTime(0.01, now + i * 0.35 + 0.3);
+            osc.start(now + i * 0.35);
+            osc.stop(now + i * 0.35 + 0.35);
+        });
+    } catch(e) { console.log('Audio not supported'); }
+}
+
+function showConfetti() {
+    const container = document.getElementById('confetti-container');
+    const colors = ['#E5751F', '#861F41', '#FFB81C', '#FFFFFF', '#630031'];
+
+    for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDelay = Math.random() * 0.5 + 's';
+        confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+
+        // Random shapes
+        if (Math.random() > 0.5) {
+            confetti.style.borderRadius = '50%';
+        } else {
+            confetti.style.width = '8px';
+            confetti.style.height = '12px';
+        }
+
+        container.appendChild(confetti);
+
+        setTimeout(() => confetti.remove(), 4000);
+    }
+}
+
+function showVictoryText(weight) {
+    const taunt = VT_WIN_TAUNTS[Math.floor(Math.random() * VT_WIN_TAUNTS.length)];
+    const overlay = document.createElement('div');
+    overlay.className = 'victory-overlay';
+    overlay.innerHTML = weight + ' LBS: VT WINS!<br><span style="font-size:1.2rem;">' + taunt + '</span>';
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 2500);
+}
+
+function showSadOverlay(weight) {
+    const taunt = NCSU_WIN_TAUNTS[Math.floor(Math.random() * NCSU_WIN_TAUNTS.length)];
+    const overlay = document.createElement('div');
+    overlay.className = 'sad-overlay';
+    overlay.innerHTML = '<div class="sad-text">' + weight + ' LBS<br>😢 ' + taunt + '</div>';
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 2500);
+}
+
+function updateHeaderTrashTalk() {
+    const el = document.getElementById('headerTrashTalk');
+    el.textContent = HEADER_TRASH_TALK[Math.floor(Math.random() * HEADER_TRASH_TALK.length)];
+}
+
+// Rotate header trash talk every 10 seconds
+setInterval(updateHeaderTrashTalk, 10000);
 
 function computeDiffProbs() {
     let dp = {0: 1.0};
@@ -899,6 +1197,19 @@ function getCurrentScore() {
     return {vt, ncsu};
 }
 
+function updateScoreTaunt(vtScore, ncsuScore) {
+    const tauntEl = document.getElementById('scoreTaunt');
+    let taunts;
+    if (vtScore > ncsuScore) {
+        taunts = SCORE_TAUNTS_VT_WINNING;
+    } else if (ncsuScore > vtScore) {
+        taunts = SCORE_TAUNTS_NCSU_WINNING;
+    } else {
+        taunts = SCORE_TAUNTS_TIE;
+    }
+    tauntEl.textContent = taunts[Math.floor(Math.random() * taunts.length)];
+}
+
 function updateAll() {
     document.getElementById('homeAdvVal').textContent = document.getElementById('homeAdv').value;
     document.getElementById('unsportMinusVal').textContent = document.getElementById('unsportMinus').value + '%';
@@ -916,6 +1227,7 @@ function updateAll() {
         document.getElementById('vtScore').textContent = score.vt;
         document.getElementById('ncsuScore').textContent = score.ncsu;
         document.getElementById('scoreDisplay').style.display = 'block';
+        updateScoreTaunt(score.vt, score.ncsu);
     } else {
         document.getElementById('scoreDisplay').style.display = 'none';
     }
@@ -942,7 +1254,6 @@ function updateDiffChart(diffProbs) {
 }
 
 function calcVTWinAtMatch(upToMatch) {
-    // Calculate VT win prob after matches 0..upToMatch are resolved
     let dp = {0: 1.0};
     for (let m = 0; m <= upToMatch; m++) {
         let newDp = {};
@@ -963,7 +1274,6 @@ function calcVTWinAtMatch(upToMatch) {
         }
         dp = newDp;
     }
-    // Now simulate remaining matches with expected outcomes
     for (let m = upToMatch + 1; m < 10; m++) {
         let newDp = {};
         const probs = MATCHES[m].probs;
@@ -985,13 +1295,11 @@ function calcVTWinAtMatch(upToMatch) {
 function updateTimeline() {
     const container = document.getElementById('timelineChart');
 
-    // Find last realized match
     let lastRealized = -1;
     for (let i = 0; i < 10; i++) {
         if (realized[i] !== null) lastRealized = i;
     }
 
-    // Calculate base VT win prob (before any matches locked)
     let dpBase = {0: 1.0};
     for (let m = 0; m < 10; m++) {
         let newDp = {};
@@ -1009,7 +1317,6 @@ function updateTimeline() {
         if (parseInt(d) > 0) baseVT += p;
     }
 
-    // Calculate points
     let points = [{x: 0, y: baseVT, realized: true}];
     for (let m = 0; m < 10; m++) {
         const isRealized = realized[m] !== null;
@@ -1017,30 +1324,24 @@ function updateTimeline() {
         points.push({x: m + 1, y: afterM, realized: isRealized});
     }
 
-    // Use percentage-based coordinates for everything
     const xPct = function(i) { return (i / 10 * 100).toFixed(2); };
     const yPct = function(v) { return ((1 - v) * 100).toFixed(2); };
 
     let html = '<div class="timeline-y-labels"><span>100%</span><span>50%</span><span>0%</span></div>';
 
-    // X labels
     html += '<div class="timeline-x-labels"><span>Start</span>';
     for (let m = 0; m < 10; m++) {
         html += '<span>' + MATCHES[m].weight + '</span>';
     }
     html += '</div>';
 
-    // SVG with viewBox for consistent scaling
     html += '<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:20px;left:40px;right:10px;bottom:30px;width:calc(100% - 50px);height:calc(100% - 50px);">';
 
-    // Grid line at 50%
     html += '<line x1="0" y1="50" x2="100" y2="50" stroke="#666" stroke-width="0.3" stroke-dasharray="2,2" opacity="0.5"/>';
 
-    // Base expected line (dashed)
     const baseY = yPct(baseVT);
     html += '<line x1="0" y1="' + baseY + '" x2="100" y2="' + baseY + '" stroke="#666" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.6"/>';
 
-    // Actual path line
     let pathD = 'M 0 ' + yPct(points[0].y);
     for (let i = 1; i < points.length; i++) {
         if (points[i].realized || i <= lastRealized + 1) {
@@ -1049,7 +1350,6 @@ function updateTimeline() {
     }
     html += '<path d="' + pathD + '" fill="none" stroke="#E5751F" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>';
 
-    // Points as SVG circles
     for (let i = 0; i < points.length; i++) {
         const pt = points[i];
         const isActive = pt.realized || i === 0;
@@ -1060,7 +1360,6 @@ function updateTimeline() {
 
     html += '</svg>';
 
-    // Labels overlay
     html += '<div class="timeline-points">';
     for (let i = 0; i < points.length; i++) {
         const pt = points[i];
@@ -1076,14 +1375,12 @@ function updateTimeline() {
     }
     html += '</div>';
 
-    // Grid border
     html += '<div class="timeline-grid"></div>';
 
     container.innerHTML = html;
 }
 
 function calcConditionalVTWin(matchIdx, outcomeIdx) {
-    // Calculate VT win prob if this specific outcome occurs
     let dp = {0: 1.0};
     for (let m = 0; m < 10; m++) {
         let newDp = {};
@@ -1095,7 +1392,6 @@ function calcConditionalVTWin(matchIdx, outcomeIdx) {
                 newDp[newD] = (newDp[newD] || 0) + p;
             }
         } else if (m === matchIdx) {
-            // Force this specific outcome
             const outcome = OUTCOMES[outcomeIdx];
             for (const [d, p] of Object.entries(dp)) {
                 const newD = parseInt(d) + outcome;
@@ -1142,10 +1438,11 @@ function updateMatchList() {
         let btns = '';
         for (let o = 0; o < 8; o++) {
             const sel = realized[m] === o;
-            const cls = o < 4 ? 'ncsu-win' : 'vt-win';
+            const isNcsuWin = o < 4;
+            const cls = isNcsuWin ? 'ncsu-win' : 'vt-win';
+            const selCls = sel ? (isNcsuWin ? ' selected ncsu-selected' : ' selected') : '';
             const prob = match.probs[o];
 
-            // Calculate conditional VT win if this outcome isn't already locked
             let deltaStr = '';
             if (realized[m] === null) {
                 const condVT = calcConditionalVTWin(m, o);
@@ -1154,7 +1451,7 @@ function updateMatchList() {
                 deltaStr = '<div class="btn-delta ' + deltaCls + '">' + (delta >= 0 ? '+' : '') + delta.toFixed(1) + '%</div>';
             }
 
-            btns += '<div class="outcome-btn ' + cls + (sel ? ' selected' : '') + '" onclick="toggleOutcome(' + m + ',' + o + ')">' +
+            btns += '<div class="outcome-btn ' + cls + selCls + '" onclick="toggleOutcome(' + m + ',' + o + ')">' +
                 '<div class="btn-label">' + LABELS[o] + '</div>' +
                 '<div class="btn-prob">' + prob.toFixed(1) + '%</div>' +
                 deltaStr +
@@ -1208,9 +1505,10 @@ function updateTopPaths() {
             oStr += '<span class="' + cls + '">' + (pts > 0 ? '+' : '') + pts + '</span>';
         }
         const winner = path.vt > path.ncsu ? 'VT' : path.ncsu > path.vt ? 'NCSU' : 'TIE';
-        html += '<div class="path-item"><div class="path-outcomes">' + oStr + '</div><div class="path-result"><div class="path-score">' + path.vt + '-' + path.ncsu + ' ' + winner + '</div><div class="path-prob">' + (path.prob*100).toFixed(2) + '%</div></div></div>';
+        const winnerEmoji = winner === 'VT' ? ' 🦃' : winner === 'NCSU' ? ' 🐺' : '';
+        html += '<div class="path-item"><div class="path-outcomes">' + oStr + '</div><div class="path-result"><div class="path-score">' + path.vt + '-' + path.ncsu + ' ' + winner + winnerEmoji + '</div><div class="path-prob">' + (path.prob*100).toFixed(2) + '%</div></div></div>';
     }
-    document.getElementById('topPaths').innerHTML = html || '<div style="color:#666">No paths</div>';
+    document.getElementById('topPaths').innerHTML = html || '<div style="color:#666">No paths (NC State\'s season in a nutshell)</div>';
 }
 
 function updateCalibration() {
@@ -1224,17 +1522,14 @@ function updateCalibration() {
     for (let m = 0; m < 10; m++) {
         const match = MATCHES[m];
 
-        // Calculate VT win probability for this match (sum of VT win outcomes)
         let vtWinProb = 0;
         for (let o = 4; o < 8; o++) {
             vtWinProb += match.probs[o];
         }
 
-        // Determine predicted winner
         const predictedWinner = vtWinProb >= 50 ? 'VT' : 'NCSU';
         const predictedProb = vtWinProb >= 50 ? vtWinProb : (100 - vtWinProb);
 
-        // Determine actual outcome if realized
         let actualStr = '<span class="actual pending">—</span>';
         let statusStr = '';
 
@@ -1245,7 +1540,6 @@ function updateCalibration() {
             const actualCls = outcome > 0 ? 'vt' : 'ncsu';
             actualStr = '<span class="actual ' + actualCls + '">' + actualWinner + ' (' + (outcome > 0 ? '+' : '') + outcome + ')</span>';
 
-            // Check if prediction was correct
             const correct = predictedWinner === actualWinner;
             if (correct) {
                 totalCorrect++;
@@ -1254,7 +1548,6 @@ function updateCalibration() {
                 statusStr = '<span class="status-icon wrong">✗</span>';
             }
 
-            // Brier score component
             const actualVTWin = outcome > 0 ? 1 : 0;
             brierScore += Math.pow((vtWinProb / 100) - actualVTWin, 2);
             totalPredicted += vtWinProb >= 50 ? vtWinProb : (100 - vtWinProb);
@@ -1272,14 +1565,12 @@ function updateCalibration() {
 
     document.getElementById('calibrationTable').innerHTML = tableHtml;
 
-    // Summary stats
     let summaryHtml = '';
     if (matchesResolved > 0) {
         const accuracy = (totalCorrect / matchesResolved * 100).toFixed(0);
         const avgConf = (totalPredicted / matchesResolved).toFixed(1);
         const brier = (brierScore / matchesResolved).toFixed(3);
 
-        // Brier score interpretation
         let brierColor = 'var(--success)';
         let brierLabel = 'Excellent';
         if (parseFloat(brier) > 0.25) { brierColor = 'var(--ncsu-red)'; brierLabel = 'Poor'; }
@@ -1293,14 +1584,48 @@ function updateCalibration() {
 
         summaryHtml += '<div style="width:100%;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:0.6rem;color:var(--text-muted);text-align:center;">Brier: 0 = perfect, 0.25 = random. &lt;0.08 excellent, 0.08-0.15 good, 0.15-0.25 fair</div>';
     } else {
-        summaryHtml = '<div style="color:var(--text-muted);font-size:0.7rem;">Lock in match outcomes to see calibration stats</div>';
+        summaryHtml = '<div style="color:var(--text-muted);font-size:0.7rem;">Lock in match outcomes to see calibration stats (and watch NC State lose)</div>';
     }
 
     document.getElementById('calibrationSummary').innerHTML = summaryHtml;
 }
 
-function toggleOutcome(m, o) { realized[m] = realized[m] === o ? null : o; updateAll(); }
-function resetAll() { realized = new Array(10).fill(null); document.getElementById('homeAdv').value = -3.9; document.getElementById('unsportMinus').value = 1; document.getElementById('unsportPlus').value = 5; updateAll(); }
+function toggleOutcome(m, o) {
+    const wasNull = realized[m] === null;
+    const wasSelected = realized[m] === o;
+
+    realized[m] = wasSelected ? null : o;
+
+    // Only play effects when selecting a new outcome (not deselecting)
+    if (!wasSelected && wasNull === false ? false : !wasSelected) {
+        if (realized[m] !== null) {
+            const outcome = OUTCOMES[o];
+            const weight = MATCHES[m].weight;
+
+            if (outcome > 0) {
+                // VT WIN!
+                playVictorySound();
+                showConfetti();
+                showVictoryText(weight);
+            } else {
+                // NCSU win... ugh
+                playSadSound();
+                showSadOverlay(weight);
+            }
+        }
+    }
+
+    updateAll();
+}
+
+function resetAll() {
+    realized = new Array(10).fill(null);
+    document.getElementById('homeAdv').value = -3.9;
+    document.getElementById('unsportMinus').value = 1;
+    document.getElementById('unsportPlus').value = 5;
+    updateAll();
+    updateHeaderTrashTalk();
+}
 
 document.getElementById('homeAdv').addEventListener('input', updateAll);
 document.getElementById('unsportMinus').addEventListener('input', updateAll);
