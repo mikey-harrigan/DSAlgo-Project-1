@@ -864,9 +864,9 @@
             <div class="slider-group">
                 <div class="slider-label">
                     <span class="slider-name">Home Advantage (Only way NCSU competes)</span>
-                    <span class="slider-value" id="homeAdvVal">-3.9</span>
+                    <span class="slider-value" id="homeAdvVal">0</span>
                 </div>
-                <input type="range" id="homeAdv" min="-10" max="10" step="0.1" value="-3.9">
+                <input type="range" id="homeAdv" min="-10" max="10" step="0.1" value="0">
             </div>
             <div class="slider-group">
                 <div class="slider-label">
@@ -1620,7 +1620,7 @@ function toggleOutcome(m, o) {
 
 function resetAll() {
     realized = new Array(10).fill(null);
-    document.getElementById('homeAdv').value = -3.9;
+    document.getElementById('homeAdv').value = 0;
     document.getElementById('unsportMinus').value = 1;
     document.getElementById('unsportPlus').value = 5;
     updateAll();
