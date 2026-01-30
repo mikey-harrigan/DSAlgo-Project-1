@@ -764,6 +764,8 @@
         .calibration-table .actual.vt { color: var(--hokie-orange); }
         .calibration-table .actual.ncsu { color: var(--ncsu-red); }
         .calibration-table .actual.pending { color: var(--text-muted); }
+        .calibration-table .vt { color: var(--hokie-orange); }
+        .calibration-table .ncsu { color: var(--ncsu-red); }
 
         .calibration-table .status-icon {
             font-size: 0.8rem;
@@ -1528,19 +1530,29 @@ function updateTopPaths() {
 }
 
 function updateCalibration() {
-    let tableHtml = '<tr><th>Wt</th><th>Matchup</th><th>VT Win %</th><th>Predicted</th><th>Actual</th><th></th></tr>';
+    let tableHtml = '<tr><th>Wt</th><th>Matchup</th><th>E[Pts]</th><th>Predicted</th><th>Actual</th><th></th></tr>';
 
     let totalPredicted = 0;
     let totalCorrect = 0;
     let matchesResolved = 0;
     let brierScore = 0;
+    let rpsScore = 0;  // Ranked Probability Score - considers margin accuracy
+    let totalPointsError = 0;  // Mean absolute error on expected points
 
     for (let m = 0; m < 10; m++) {
         const match = MATCHES[m];
+        const probs = match.probs;
 
+        // Calculate VT win probability (outcomes 4-7 are VT wins)
         let vtWinProb = 0;
         for (let o = 4; o < 8; o++) {
-            vtWinProb += match.probs[o];
+            vtWinProb += probs[o];
+        }
+
+        // Calculate expected points for this match
+        let expectedPts = 0;
+        for (let o = 0; o < 8; o++) {
+            expectedPts += OUTCOMES[o] * probs[o] / 100;
         }
 
         const predictedWinner = vtWinProb >= 50 ? 'VT' : 'NCSU';
@@ -1551,7 +1563,8 @@ function updateCalibration() {
 
         if (realized[m] !== null) {
             matchesResolved++;
-            const outcome = OUTCOMES[realized[m]];
+            const actualOutcomeIdx = realized[m];
+            const outcome = OUTCOMES[actualOutcomeIdx];
             const actualWinner = outcome > 0 ? 'VT' : 'NCSU';
             const actualCls = outcome > 0 ? 'vt' : 'ncsu';
             actualStr = '<span class="actual ' + actualCls + '">' + actualWinner + ' (' + (outcome > 0 ? '+' : '') + outcome + ')</span>';
@@ -1564,15 +1577,38 @@ function updateCalibration() {
                 statusStr = '<span class="status-icon wrong">✗</span>';
             }
 
+            // Binary Brier score (existing)
             const actualVTWin = outcome > 0 ? 1 : 0;
             brierScore += Math.pow((vtWinProb / 100) - actualVTWin, 2);
             totalPredicted += vtWinProb >= 50 ? vtWinProb : (100 - vtWinProb);
+
+            // Ranked Probability Score (RPS) - penalizes distance from actual outcome
+            // Uses cumulative probabilities: being 1 category off is better than 3 off
+            let rps = 0;
+            for (let k = 0; k < 7; k++) {
+                // Cumulative predicted probability up to outcome k
+                let cumPred = 0;
+                for (let j = 0; j <= k; j++) {
+                    cumPred += probs[j] / 100;
+                }
+                // Cumulative actual: 1 if actual outcome index <= k, else 0
+                const cumActual = actualOutcomeIdx <= k ? 1 : 0;
+                rps += Math.pow(cumPred - cumActual, 2);
+            }
+            rpsScore += rps / 7;  // Normalize by number of categories - 1
+
+            // Points error: |expected - actual|
+            totalPointsError += Math.abs(expectedPts - outcome);
         }
+
+        // Show expected points instead of just VT win %
+        const expPtsStr = (expectedPts >= 0 ? '+' : '') + expectedPts.toFixed(1);
+        const expPtsCls = expectedPts >= 0 ? 'vt' : 'ncsu';
 
         tableHtml += '<tr>' +
             '<td class="weight-col">' + match.weight + '</td>' +
             '<td class="wrestler-col"><span class="vt-name">' + match.vt + '</span><br><span class="ncsu-name">' + match.ncsu + '</span></td>' +
-            '<td class="predicted">' + vtWinProb.toFixed(0) + '%</td>' +
+            '<td class="predicted"><span class="' + expPtsCls + '">' + expPtsStr + '</span></td>' +
             '<td class="predicted">' + predictedWinner + ' (' + predictedProb.toFixed(0) + '%)</td>' +
             '<td>' + actualStr + '</td>' +
             '<td>' + statusStr + '</td>' +
@@ -1586,19 +1622,31 @@ function updateCalibration() {
         const accuracy = (totalCorrect / matchesResolved * 100).toFixed(0);
         const avgConf = (totalPredicted / matchesResolved).toFixed(1);
         const brier = (brierScore / matchesResolved).toFixed(3);
+        const rps = (rpsScore / matchesResolved).toFixed(3);
+        const mae = (totalPointsError / matchesResolved).toFixed(2);
 
-        let brierColor = 'var(--success)';
-        let brierLabel = 'Excellent';
-        if (parseFloat(brier) > 0.25) { brierColor = 'var(--ncsu-red)'; brierLabel = 'Poor'; }
-        else if (parseFloat(brier) > 0.15) { brierColor = 'var(--gold)'; brierLabel = 'Fair'; }
-        else if (parseFloat(brier) > 0.08) { brierColor = 'var(--text-secondary)'; brierLabel = 'Good'; }
+        // RPS color coding (same scale as Brier, but typically lower values)
+        let rpsColor = 'var(--success)';
+        let rpsLabel = 'Excellent';
+        if (parseFloat(rps) > 0.20) { rpsColor = 'var(--ncsu-red)'; rpsLabel = 'Poor'; }
+        else if (parseFloat(rps) > 0.12) { rpsColor = 'var(--gold)'; rpsLabel = 'Fair'; }
+        else if (parseFloat(rps) > 0.06) { rpsColor = 'var(--text-secondary)'; rpsLabel = 'Good'; }
+
+        // MAE color coding (in points)
+        let maeColor = 'var(--success)';
+        let maeLabel = 'Excellent';
+        if (parseFloat(mae) > 4) { maeColor = 'var(--ncsu-red)'; maeLabel = 'Poor'; }
+        else if (parseFloat(mae) > 2.5) { maeColor = 'var(--gold)'; maeLabel = 'Fair'; }
+        else if (parseFloat(mae) > 1.5) { maeColor = 'var(--text-secondary)'; maeLabel = 'Good'; }
 
         summaryHtml = '<div class="calibration-stat"><div class="label">Resolved</div><div class="value">' + matchesResolved + '/10</div></div>' +
             '<div class="calibration-stat"><div class="label">Accuracy</div><div class="value">' + accuracy + '%</div></div>' +
-            '<div class="calibration-stat"><div class="label">Avg Conf</div><div class="value">' + avgConf + '%</div></div>' +
-            '<div class="calibration-stat"><div class="label">Brier Score</div><div class="value" style="color:' + brierColor + '">' + brier + '</div><div style="font-size:0.55rem;color:' + brierColor + '">' + brierLabel + '</div></div>';
+            '<div class="calibration-stat"><div class="label">RPS</div><div class="value" style="color:' + rpsColor + '">' + rps + '</div><div style="font-size:0.55rem;color:' + rpsColor + '">' + rpsLabel + '</div></div>' +
+            '<div class="calibration-stat"><div class="label">Pts Error</div><div class="value" style="color:' + maeColor + '">±' + mae + '</div><div style="font-size:0.55rem;color:' + maeColor + '">' + maeLabel + '</div></div>';
 
-        summaryHtml += '<div style="width:100%;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:0.6rem;color:var(--text-muted);text-align:center;">Brier: 0 = perfect, 0.25 = random. &lt;0.08 excellent, 0.08-0.15 good, 0.15-0.25 fair</div>';
+        summaryHtml += '<div style="width:100%;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:0.55rem;color:var(--text-muted);text-align:center;line-height:1.4;">' +
+            '<b>RPS</b> (Ranked Probability Score): Measures margin accuracy, not just win/loss. Predicting +3 when actual is +4 scores better than predicting +3 when actual is -3.<br>' +
+            '<b>Pts Error</b>: Average |expected pts − actual pts| per match. Lower = closer margin predictions.</div>';
     } else {
         summaryHtml = '<div style="color:var(--text-muted);font-size:0.7rem;">Lock in outcomes to quantify how stupid NCSU really is</div>';
     }
