@@ -984,11 +984,6 @@ function calcVTWinAtMatch(upToMatch) {
 
 function updateTimeline() {
     const container = document.getElementById('timelineChart');
-    const width = container.offsetWidth - 50;
-    const height = 130;
-    const padLeft = 40, padRight = 10, padTop = 20, padBot = 30;
-    const graphW = width - padLeft - padRight;
-    const graphH = height - padTop - padBot;
 
     // Find last realized match
     let lastRealized = -1;
@@ -996,13 +991,7 @@ function updateTimeline() {
         if (realized[i] !== null) lastRealized = i;
     }
 
-    // Calculate VT win prob at each point
-    // Point 0 = before any matches (base)
-    // Point 1 = after match 0, etc.
-    let points = [];
-    let baseVT = calcVTWinAtMatch(-1); // Before any matches - just use full expectation
-
-    // Actually compute properly: base before any locked
+    // Calculate base VT win prob (before any matches locked)
     let dpBase = {0: 1.0};
     for (let m = 0; m < 10; m++) {
         let newDp = {};
@@ -1015,75 +1004,80 @@ function updateTimeline() {
         }
         dpBase = newDp;
     }
-    baseVT = 0;
+    let baseVT = 0;
     for (const [d, p] of Object.entries(dpBase)) {
         if (parseInt(d) > 0) baseVT += p;
     }
 
-    points.push({x: 0, y: baseVT, label: 'Start', realized: true});
-
-    // Add points for each match
+    // Calculate points
+    let points = [{x: 0, y: baseVT, realized: true}];
     for (let m = 0; m < 10; m++) {
         const isRealized = realized[m] !== null;
         const afterM = calcVTWinAtMatch(m);
-        points.push({
-            x: m + 1,
-            y: afterM,
-            label: MATCHES[m].weight + '',
-            realized: isRealized || m <= lastRealized
-        });
+        points.push({x: m + 1, y: afterM, realized: isRealized});
     }
 
-    // Scale Y from 0% to 100%
-    const yScale = function(v) { return padTop + graphH * (1 - v); };
-    const xScale = function(i) { return padLeft + (i / 10) * graphW; };
+    // Use percentage-based coordinates for everything
+    const xPct = function(i) { return (i / 10 * 100).toFixed(2); };
+    const yPct = function(v) { return ((1 - v) * 100).toFixed(2); };
 
-    let html = '<div class="timeline-grid"><div class="timeline-line-50"></div></div>';
-    html += '<div class="timeline-y-labels"><span>100%</span><span>50%</span><span>0%</span></div>';
+    let html = '<div class="timeline-y-labels"><span>100%</span><span>50%</span><span>0%</span></div>';
 
     // X labels
-    html += '<div class="timeline-x-labels">';
-    html += '<span>Start</span>';
+    html += '<div class="timeline-x-labels"><span>Start</span>';
     for (let m = 0; m < 10; m++) {
         html += '<span>' + MATCHES[m].weight + '</span>';
     }
     html += '</div>';
 
-    // SVG for lines
-    html += '<svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">';
+    // SVG with viewBox for consistent scaling
+    html += '<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:20px;left:40px;right:10px;bottom:30px;width:calc(100% - 50px);height:calc(100% - 50px);">';
 
-    // Expected path (dashed line at base level)
-    html += '<line x1="' + xScale(0) + '" y1="' + yScale(baseVT) + '" x2="' + xScale(10) + '" y2="' + yScale(baseVT) + '" class="timeline-path-expected"/>';
+    // Grid line at 50%
+    html += '<line x1="0" y1="50" x2="100" y2="50" stroke="#666" stroke-width="0.3" stroke-dasharray="2,2" opacity="0.5"/>';
 
-    // Actual path
-    let pathD = 'M ' + xScale(0) + ' ' + yScale(points[0].y);
+    // Base expected line (dashed)
+    const baseY = yPct(baseVT);
+    html += '<line x1="0" y1="' + baseY + '" x2="100" y2="' + baseY + '" stroke="#666" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.6"/>';
+
+    // Actual path line
+    let pathD = 'M 0 ' + yPct(points[0].y);
     for (let i = 1; i < points.length; i++) {
-        if (points[i].realized || i <= lastRealized + 2) {
-            pathD += ' L ' + xScale(i) + ' ' + yScale(points[i].y);
+        if (points[i].realized || i <= lastRealized + 1) {
+            pathD += ' L ' + xPct(i) + ' ' + yPct(points[i].y);
         }
     }
-    html += '<path d="' + pathD + '" class="timeline-path"/>';
+    html += '<path d="' + pathD + '" fill="none" stroke="#E5751F" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>';
+
+    // Points as SVG circles
+    for (let i = 0; i < points.length; i++) {
+        const pt = points[i];
+        const isActive = pt.realized || i === 0;
+        const color = isActive ? '#E5751F' : '#444';
+        const opacity = isActive ? '1' : '0.4';
+        html += '<circle cx="' + xPct(i) + '" cy="' + yPct(pt.y) + '" r="2" fill="' + color + '" stroke="#1A1A1A" stroke-width="0.5" opacity="' + opacity + '"/>';
+    }
+
     html += '</svg>';
 
-    // Points
+    // Labels overlay
     html += '<div class="timeline-points">';
     for (let i = 0; i < points.length; i++) {
         const pt = points[i];
-        const x = ((i / 10) * 100).toFixed(1);
-        const y = ((1 - pt.y) * 100).toFixed(1);
-        const cls = (pt.realized || i === 0) ? '' : ' future';
-        html += '<div class="timeline-point' + cls + '" style="left:' + x + '%;top:' + y + '%;"></div>';
         if (pt.realized && i > 0) {
-            const labelY = pt.y > 0.5 ? 'top:-18px;' : 'bottom:-18px;';
+            const x = xPct(i);
+            const labelY = pt.y > 0.5 ? 'top:' + (yPct(pt.y) - 12) + '%;' : 'top:' + (parseFloat(yPct(pt.y)) + 3) + '%;';
             html += '<div class="timeline-point-label" style="left:' + x + '%;' + labelY + '">' + (pt.y * 100).toFixed(0) + '%</div>';
         }
     }
-    // Show current value label
     if (lastRealized >= 0) {
         const lastPt = points[lastRealized + 1];
-        html += '<div style="position:absolute;right:0;top:5px;font-size:0.7rem;color:var(--hokie-orange);font-weight:600;">Current: ' + (lastPt.y * 100).toFixed(1) + '%</div>';
+        html += '<div style="position:absolute;right:0;top:-5px;font-size:0.7rem;color:var(--hokie-orange);font-weight:600;">Current: ' + (lastPt.y * 100).toFixed(1) + '%</div>';
     }
     html += '</div>';
+
+    // Grid border
+    html += '<div class="timeline-grid"></div>';
 
     container.innerHTML = html;
 }
@@ -1285,10 +1279,19 @@ function updateCalibration() {
         const avgConf = (totalPredicted / matchesResolved).toFixed(1);
         const brier = (brierScore / matchesResolved).toFixed(3);
 
+        // Brier score interpretation
+        let brierColor = 'var(--success)';
+        let brierLabel = 'Excellent';
+        if (parseFloat(brier) > 0.25) { brierColor = 'var(--ncsu-red)'; brierLabel = 'Poor'; }
+        else if (parseFloat(brier) > 0.15) { brierColor = 'var(--gold)'; brierLabel = 'Fair'; }
+        else if (parseFloat(brier) > 0.08) { brierColor = 'var(--text-secondary)'; brierLabel = 'Good'; }
+
         summaryHtml = '<div class="calibration-stat"><div class="label">Resolved</div><div class="value">' + matchesResolved + '/10</div></div>' +
             '<div class="calibration-stat"><div class="label">Accuracy</div><div class="value">' + accuracy + '%</div></div>' +
             '<div class="calibration-stat"><div class="label">Avg Conf</div><div class="value">' + avgConf + '%</div></div>' +
-            '<div class="calibration-stat"><div class="label">Brier</div><div class="value">' + brier + '</div></div>';
+            '<div class="calibration-stat"><div class="label">Brier Score</div><div class="value" style="color:' + brierColor + '">' + brier + '</div><div style="font-size:0.55rem;color:' + brierColor + '">' + brierLabel + '</div></div>';
+
+        summaryHtml += '<div style="width:100%;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:0.6rem;color:var(--text-muted);text-align:center;">Brier: 0 = perfect, 0.25 = random. &lt;0.08 excellent, 0.08-0.15 good, 0.15-0.25 fair</div>';
     } else {
         summaryHtml = '<div style="color:var(--text-muted);font-size:0.7rem;">Lock in match outcomes to see calibration stats</div>';
     }
