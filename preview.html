@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VT vs NCSU - Humor Features Preview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --hokie-maroon: #861F41;
+            --hokie-orange: #E5751F;
+            --hokie-dark: #630031;
+            --ncsu-red: #CC0000;
+            --bg-dark: #0D0D0D;
+            --bg-card: #1A1A1A;
+            --bg-elevated: #242424;
+            --text-primary: #FFFFFF;
+            --text-secondary: #A0A0A0;
+            --text-muted: #666666;
+            --border: rgba(255,255,255,0.08);
+            --success: #22C55E;
+            --gold: #FFB81C;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--hokie-dark) 0%, var(--hokie-maroon) 50%, var(--hokie-dark) 100%);
+            padding: 20px 16px;
+            border-bottom: 3px solid var(--hokie-orange);
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            color: white;
+        }
+
+        .subtitle {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+            margin-top: 4px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .controls {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .controls label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, var(--ncsu-red), var(--text-muted), var(--hokie-orange));
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .slider-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .slider-value.vt { color: var(--hokie-orange); }
+        .slider-value.ncsu { color: var(--ncsu-red); }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            color: var(--hokie-orange);
+            margin-bottom: 4px;
+        }
+
+        .card-subtitle {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        /* ============================================
+           PAT POP BEARD-O-METER
+           ============================================ */
+        .beard-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .pat-face {
+            position: relative;
+            width: 150px;
+            height: 180px;
+        }
+
+        .face-base {
+            width: 120px;
+            height: 140px;
+            background: #FDBF6F;
+            border-radius: 50% 50% 45% 45%;
+            position: absolute;
+            top: 0;
+            left: 15px;
+            border: 3px solid #E8A84C;
+        }
+
+        .eyes {
+            position: absolute;
+            top: 45px;
+            left: 35px;
+            width: 80px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .eye {
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            position: relative;
+            border: 2px solid #333;
+        }
+
+        .pupil {
+            width: 8px;
+            height: 8px;
+            background: #333;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s;
+        }
+
+        .eyebrows {
+            position: absolute;
+            top: 32px;
+            left: 32px;
+            width: 86px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .eyebrow {
+            width: 24px;
+            height: 6px;
+            background: #5D4037;
+            border-radius: 3px;
+            transition: transform 0.3s;
+        }
+
+        .mouth {
+            position: absolute;
+            top: 95px;
+            left: 55px;
+            width: 40px;
+            height: 15px;
+            border: 3px solid #8B4513;
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+            transition: all 0.3s;
+        }
+
+        .beard {
+            position: absolute;
+            bottom: 0;
+            left: 25px;
+            width: 100px;
+            height: 80px;
+            transition: all 0.5s ease;
+        }
+
+        .beard-hair {
+            position: absolute;
+            background: #5D4037;
+            border-radius: 0 0 50% 50%;
+            transition: all 0.4s ease;
+        }
+
+        .tears {
+            position: absolute;
+            top: 65px;
+            left: 30px;
+            width: 90px;
+            display: flex;
+            justify-content: space-between;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tear {
+            width: 8px;
+            height: 16px;
+            background: #87CEEB;
+            border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
+            animation: tearDrop 1s infinite;
+        }
+
+        @keyframes tearDrop {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(30px); opacity: 0; }
+        }
+
+        .sweat-drops {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .sweat {
+            width: 6px;
+            height: 10px;
+            background: #87CEEB;
+            border-radius: 50%;
+            position: absolute;
+            animation: sweatDrop 1.5s infinite;
+        }
+
+        @keyframes sweatDrop {
+            0% { transform: translateY(0); opacity: 0.8; }
+            100% { transform: translateY(20px); opacity: 0; }
+        }
+
+        .beard-status {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            text-align: center;
+            color: var(--text-secondary);
+            min-height: 40px;
+        }
+
+        .beard-confidence {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+            margin-top: 8px;
+        }
+
+        /* ============================================
+           BALD FAN COUNTER
+           ============================================ */
+        .bald-counter {
+            text-align: center;
+        }
+
+        .bald-display {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+
+        .head-silhouettes {
+            display: flex;
+            gap: 8px;
+        }
+
+        .head {
+            width: 40px;
+            height: 50px;
+            position: relative;
+        }
+
+        .head-shape {
+            width: 36px;
+            height: 42px;
+            background: #FDBF6F;
+            border-radius: 50% 50% 45% 45%;
+            position: absolute;
+            top: 4px;
+            left: 2px;
+            border: 2px solid #E8A84C;
+        }
+
+        .hair {
+            position: absolute;
+            top: 0;
+            left: 2px;
+            width: 36px;
+            height: 20px;
+            background: #5D4037;
+            border-radius: 50% 50% 0 0;
+            transition: all 0.5s;
+            transform-origin: bottom;
+        }
+
+        .glare {
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            width: 12px;
+            height: 8px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .bald-number {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            color: var(--ncsu-red);
+        }
+
+        .bald-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .hair-loss-rate {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 12px 0;
+            font-size: 0.75rem;
+        }
+
+        .rate-item {
+            text-align: center;
+        }
+
+        .rate-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            color: var(--ncsu-red);
+        }
+
+        .testimonial {
+            background: var(--bg-elevated);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.75rem;
+            font-style: italic;
+            color: var(--text-secondary);
+            margin-top: 12px;
+            min-height: 60px;
+        }
+
+        .testimonial-author {
+            display: block;
+            margin-top: 6px;
+            color: var(--text-muted);
+            font-style: normal;
+        }
+
+        /* ============================================
+           COPIUM CALCULATOR
+           ============================================ */
+        .copium-container {
+            text-align: center;
+        }
+
+        .copium-tank {
+            width: 100px;
+            height: 150px;
+            background: var(--bg-elevated);
+            border-radius: 10px 10px 20px 20px;
+            margin: 0 auto 16px;
+            position: relative;
+            border: 3px solid #444;
+            overflow: hidden;
+        }
+
+        .copium-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, #00BFFF, #87CEEB);
+            transition: height 0.5s ease;
+        }
+
+        .copium-bubbles {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+        }
+
+        .bubble {
+            position: absolute;
+            background: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            animation: bubbleUp 2s infinite;
+        }
+
+        @keyframes bubbleUp {
+            0% { transform: translateY(0); opacity: 0.8; }
+            100% { transform: translateY(-150px); opacity: 0; }
+        }
+
+        .copium-label {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+
+        .copium-level {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .copium-excuse {
+            background: var(--bg-elevated);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.8rem;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .copium-warning {
+            margin-top: 12px;
+            padding: 8px;
+            background: rgba(255,0,0,0.2);
+            border-radius: 8px;
+            font-size: 0.7rem;
+            color: var(--ncsu-red);
+            display: none;
+        }
+
+        /* ============================================
+           RALEIGH MISERY INDEX
+           ============================================ */
+        .misery-container {
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .misery-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .weather-icon {
+            font-size: 2rem;
+        }
+
+        .misery-location {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.2rem;
+        }
+
+        .misery-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .misery-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .misery-item-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .misery-item-value {
+            font-size: 0.85rem;
+            margin-top: 4px;
+            transition: color 0.3s;
+        }
+
+        .news-ticker {
+            margin-top: 12px;
+            padding: 8px;
+            background: rgba(204,0,0,0.2);
+            border-radius: 6px;
+            font-size: 0.7rem;
+            color: var(--ncsu-red);
+            overflow: hidden;
+        }
+
+        .ticker-text {
+            white-space: nowrap;
+            animation: tickerScroll 15s linear infinite;
+        }
+
+        @keyframes tickerScroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* ============================================
+           TEAR-O-METER
+           ============================================ */
+        .tear-container {
+            text-align: center;
+        }
+
+        .tear-display {
+            position: relative;
+            width: 120px;
+            height: 140px;
+            margin: 0 auto 16px;
+        }
+
+        .bucket {
+            width: 100px;
+            height: 80px;
+            background: linear-gradient(135deg, #666 0%, #444 100%);
+            border-radius: 0 0 20px 20px;
+            position: absolute;
+            bottom: 0;
+            left: 10px;
+            border: 3px solid #555;
+            overflow: hidden;
+        }
+
+        .bucket-water {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, #1E90FF, #87CEEB);
+            transition: height 0.5s ease;
+        }
+
+        .bucket-handle {
+            width: 80px;
+            height: 40px;
+            border: 4px solid #555;
+            border-bottom: none;
+            border-radius: 40px 40px 0 0;
+            position: absolute;
+            top: 0;
+            left: 20px;
+        }
+
+        .tear-falling {
+            position: absolute;
+            top: 40px;
+            left: 55px;
+        }
+
+        .falling-tear {
+            width: 10px;
+            height: 16px;
+            background: #87CEEB;
+            border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
+            animation: fallInBucket 1s infinite;
+        }
+
+        @keyframes fallInBucket {
+            0% { transform: translateY(-20px); opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(60px); opacity: 0; }
+        }
+
+        .tear-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .tear-stat {
+            background: var(--bg-elevated);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .tear-stat-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            color: #87CEEB;
+        }
+
+        .tear-stat-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .flood-warning {
+            margin-top: 12px;
+            padding: 8px;
+            background: rgba(0,150,255,0.2);
+            border-radius: 8px;
+            font-size: 0.7rem;
+            color: #87CEEB;
+        }
+
+        /* ============================================
+           MOMENTUM GRAPH
+           ============================================ */
+        .momentum-container {
+            height: 200px;
+            position: relative;
+        }
+
+        .momentum-graph {
+            width: 100%;
+            height: 100%;
+        }
+
+        .graph-line {
+            fill: none;
+            stroke: var(--hokie-orange);
+            stroke-width: 3;
+            transition: d 0.5s ease;
+        }
+
+        .graph-area {
+            fill: url(#graphGradient);
+            opacity: 0.3;
+        }
+
+        .graph-point {
+            fill: var(--hokie-orange);
+            stroke: white;
+            stroke-width: 2;
+            cursor: pointer;
+            transition: r 0.2s;
+        }
+
+        .graph-point:hover {
+            r: 8;
+        }
+
+        .graph-annotation {
+            font-size: 0.6rem;
+            fill: var(--text-secondary);
+        }
+
+        .axis-label {
+            font-size: 0.6rem;
+            fill: var(--text-muted);
+        }
+
+        .fifty-line {
+            stroke: var(--text-muted);
+            stroke-dasharray: 4,4;
+            stroke-width: 1;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px 16px;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .footer span { color: var(--hokie-orange); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>VT vs NCSU Humor Features Preview</h1>
+        <div class="subtitle">Drag the slider to see features react to VT's win probability</div>
+    </div>
+
+    <div class="container">
+        <div class="controls">
+            <label>VT Win Probability (drag to test features)</label>
+            <div class="slider-container">
+                <span style="color: var(--ncsu-red);">NCSU</span>
+                <input type="range" id="probSlider" min="0" max="100" value="65">
+                <span style="color: var(--hokie-orange);">VT</span>
+                <span class="slider-value vt" id="probValue">65%</span>
+            </div>
+        </div>
+
+        <div class="feature-grid">
+            <!-- PAT POP BEARD-O-METER -->
+            <div class="card">
+                <div class="card-title">Pat Pop Beard-O-Meter™</div>
+                <div class="card-subtitle">Watch the beard wilt in real-time</div>
+                <div class="beard-container">
+                    <div class="pat-face">
+                        <div class="face-base"></div>
+                        <div class="eyes">
+                            <div class="eye"><div class="pupil" id="leftPupil"></div></div>
+                            <div class="eye"><div class="pupil" id="rightPupil"></div></div>
+                        </div>
+                        <div class="eyebrows">
+                            <div class="eyebrow" id="leftBrow"></div>
+                            <div class="eyebrow" id="rightBrow"></div>
+                        </div>
+                        <div class="mouth" id="patMouth"></div>
+                        <div class="sweat-drops" id="sweatDrops">
+                            <div class="sweat" style="left: 0; animation-delay: 0s;"></div>
+                            <div class="sweat" style="left: 100px; animation-delay: 0.5s;"></div>
+                        </div>
+                        <div class="tears" id="patTears">
+                            <div class="tear" style="animation-delay: 0s;"></div>
+                            <div class="tear" style="animation-delay: 0.3s;"></div>
+                        </div>
+                        <div class="beard" id="patBeard"></div>
+                    </div>
+                    <div class="beard-status" id="beardStatus">The beard is MAJESTIC and full of hubris</div>
+                    <div class="beard-confidence">Beard Confidence: <span id="beardConfidence">95%</span></div>
+                </div>
+            </div>
+
+            <!-- BALD FAN COUNTER -->
+            <div class="card">
+                <div class="card-title">NCSU Fan Hair Loss Tracker™</div>
+                <div class="card-subtitle">A peer-reviewed study (n=12,847)</div>
+                <div class="bald-counter">
+                    <div class="bald-display">
+                        <div class="head-silhouettes">
+                            <div class="head">
+                                <div class="hair" id="hair1"></div>
+                                <div class="glare" id="glare1"></div>
+                                <div class="head-shape"></div>
+                            </div>
+                            <div class="head">
+                                <div class="hair" id="hair2"></div>
+                                <div class="glare" id="glare2"></div>
+                                <div class="head-shape"></div>
+                            </div>
+                            <div class="head">
+                                <div class="hair" id="hair3"></div>
+                                <div class="glare" id="glare3"></div>
+                                <div class="head-shape"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="bald-number" id="baldCount">3,847</div>
+                            <div class="bald-label">Est. Bald Fans</div>
+                        </div>
+                    </div>
+                    <div class="hair-loss-rate">
+                        <div class="rate-item">
+                            <div class="rate-value" id="follicleRate">23</div>
+                            <div class="bald-label">follicles/min</div>
+                        </div>
+                        <div class="rate-item">
+                            <div class="rate-value" id="norwoodStage">3</div>
+                            <div class="bald-label">avg. Norwood</div>
+                        </div>
+                    </div>
+                    <div class="testimonial" id="baldTestimonial">
+                        "I had a full head of hair before the 174 match"
+                        <span class="testimonial-author">— Anonymous NCSU Fan</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COPIUM CALCULATOR -->
+            <div class="card">
+                <div class="card-title">The Copium Calculator™</div>
+                <div class="card-subtitle">Measuring NCSU fan mental gymnastics</div>
+                <div class="copium-container">
+                    <div class="copium-tank">
+                        <div class="copium-label">COPIUM</div>
+                        <div class="copium-fill" id="copiumFill"></div>
+                        <div class="copium-bubbles" id="copiumBubbles"></div>
+                    </div>
+                    <div class="copium-level">Level: <span id="copiumLevel" style="color: var(--success);">Mild</span></div>
+                    <div class="copium-excuse" id="copiumExcuse">"It's still early"</div>
+                    <div class="copium-warning" id="copiumWarning">⚠️ WARNING: Copium reserves approaching critical levels</div>
+                </div>
+            </div>
+
+            <!-- RALEIGH MISERY INDEX -->
+            <div class="card">
+                <div class="card-title">Raleigh Misery Index™</div>
+                <div class="card-subtitle">Live conditions from North Carolina's saddest city</div>
+                <div class="misery-container">
+                    <div class="misery-header">
+                        <span class="weather-icon" id="weatherIcon">⛅</span>
+                        <div>
+                            <div class="misery-location">Raleigh, NC</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted);" id="weatherDesc">Partly Cloudy</div>
+                        </div>
+                    </div>
+                    <div class="misery-grid">
+                        <div class="misery-item">
+                            <div class="misery-item-label">Air Quality</div>
+                            <div class="misery-item-value" id="airQuality">Moderate</div>
+                        </div>
+                        <div class="misery-item">
+                            <div class="misery-item-label">Traffic</div>
+                            <div class="misery-item-value" id="traffic">Heavy</div>
+                        </div>
+                        <div class="misery-item">
+                            <div class="misery-item-label">Happiness Index</div>
+                            <div class="misery-item-value" id="happiness">Below Average</div>
+                        </div>
+                        <div class="misery-item">
+                            <div class="misery-item-label">Hair Density</div>
+                            <div class="misery-item-value" id="hairDensity">Thinning</div>
+                        </div>
+                    </div>
+                    <div class="news-ticker">
+                        <div class="ticker-text" id="tickerText">BREAKING: Local man blames loss on refs. This is hour 4 of his rant. More at 11.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TEAR-O-METER -->
+            <div class="card">
+                <div class="card-title">The Tear-O-Meter™</div>
+                <div class="card-subtitle">Estimated tears shed by NCSU fans</div>
+                <div class="tear-container">
+                    <div class="tear-display">
+                        <div class="bucket-handle"></div>
+                        <div class="bucket">
+                            <div class="bucket-water" id="bucketWater"></div>
+                        </div>
+                        <div class="tear-falling" id="tearFalling">
+                            <div class="falling-tear"></div>
+                        </div>
+                    </div>
+                    <div style="font-family: 'Bebas Neue'; font-size: 2rem; color: #87CEEB;" id="tearGallons">1.2 GALLONS</div>
+                    <div class="tear-stats">
+                        <div class="tear-stat">
+                            <div class="tear-stat-value" id="tearRate">0.3</div>
+                            <div class="tear-stat-label">gal/min</div>
+                        </div>
+                        <div class="tear-stat">
+                            <div class="tear-stat-value" id="poolPercent">24%</div>
+                            <div class="tear-stat-label">of Reynolds capacity</div>
+                        </div>
+                    </div>
+                    <div class="flood-warning" id="floodWarning">📢 No flood warning... yet</div>
+                </div>
+            </div>
+
+            <!-- MOMENTUM GRAPH -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-title">Match Momentum Graph</div>
+                <div class="card-subtitle">Win probability with trash talk annotations</div>
+                <div class="momentum-container">
+                    <svg class="momentum-graph" id="momentumGraph" viewBox="0 0 700 200">
+                        <defs>
+                            <linearGradient id="graphGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#E5751F;stop-opacity:0.5" />
+                                <stop offset="100%" style="stop-color:#E5751F;stop-opacity:0" />
+                            </linearGradient>
+                        </defs>
+                        <!-- 50% line -->
+                        <line class="fifty-line" x1="50" y1="100" x2="680" y2="100" />
+                        <text class="axis-label" x="30" y="104">50%</text>
+                        <text class="axis-label" x="30" y="20">100%</text>
+                        <text class="axis-label" x="30" y="190">0%</text>
+
+                        <!-- Graph will be drawn by JS -->
+                        <path class="graph-area" id="graphArea"></path>
+                        <path class="graph-line" id="graphLine"></path>
+                        <g id="graphPoints"></g>
+                        <g id="graphAnnotations"></g>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Built with <span>♥</span> and contempt for NC State • Go Hokies!
+    </div>
+
+    <script>
+        // Slider control
+        const slider = document.getElementById('probSlider');
+        const probValue = document.getElementById('probValue');
+
+        // Match simulation data (probability at each weight class)
+        const matchData = [
+            { weight: 125, prob: 72 },
+            { weight: 133, prob: 90 },
+            { weight: 141, prob: 20 },
+            { weight: 149, prob: 40 },
+            { weight: 157, prob: 80 },
+            { weight: 165, prob: 52 },
+            { weight: 174, prob: 10 },
+            { weight: 184, prob: 54 },
+            { weight: 197, prob: 78 },
+            { weight: 285, prob: 18 }
+        ];
+
+        // Testimonials for bald counter
+        const testimonials = [
+            { text: "I had a full head of hair before the 174 match", author: "Anonymous NCSU Fan" },
+            { text: "My doctor said it's stress-related. I said it's Singleton-related.", author: "Former Season Ticket Holder" },
+            { text: "I moved to Raleigh in 2019. By 2021, I was buying Rogaine in bulk.", author: "Transplant Victim" },
+            { text: "The glare from my head now qualifies as a safety hazard.", author: "Section 12 Regular" },
+            { text: "My barber fired me as a client. Said there was nothing left to cut.", author: "Devastated Alum" },
+            { text: "Is it the water? The stress? Pat Pop's aura? Scientists are baffled.", author: "Local Researcher" },
+            { text: "I started wearing a hat. Then I lost the hat. Then more hair.", author: "Cursed Individual" }
+        ];
+
+        // Excuses for copium calculator
+        const excuses = [
+            { min: 0, max: 40, level: "Mild", color: "var(--success)", text: "It's still early" },
+            { min: 40, max: 50, level: "Moderate", color: "var(--gold)", text: "Refs missed that call" },
+            { min: 50, max: 60, level: "Heavy", color: "var(--hokie-orange)", text: "Our guy was clearly injured" },
+            { min: 60, max: 70, level: "Severe", color: "#FF6B6B", text: "We're resting starters for ACCs" },
+            { min: 70, max: 80, level: "Critical", color: "var(--ncsu-red)", text: "Wrestling isn't even a real sport anyway" },
+            { min: 80, max: 90, level: "Overdose", color: "#8B0000", text: "At least we have basketball... wait" },
+            { min: 90, max: 100, level: "FATAL", color: "#4B0000", text: "I never even liked wrestling. I'm here for the hot dogs." }
+        ];
+
+        // News ticker headlines
+        const tickerHeadlines = [
+            "BREAKING: Local man blames loss on refs. This is hour 4 of his rant.",
+            "ALERT: Rogaine stocks surge as NCSU fans panic-buy in bulk.",
+            "UPDATE: Pat Pop seen stress-eating entire pizza in tunnel.",
+            "WEATHER: Flash flood warning issued for Reynolds Coliseum due to tears.",
+            "TRAFFIC: Gridlock on I-40 as fans flee early to avoid embarrassment.",
+            "ECONOMY: Raleigh property values down 12% since first whistle.",
+            "SPORTS: Sources confirm NCSU wrestlers also bald under their headgear.",
+            "HEALTH: CDC investigating Raleigh hair loss epidemic. Water supply suspected."
+        ];
+
+        // Trash talk annotations for momentum graph
+        const annotations = [
+            { thresh: 20, dir: 'down', text: "Brief NCSU hope. Adorable." },
+            { thresh: 40, dir: 'up', text: "Bald count rising in the stands" },
+            { thresh: 60, dir: 'up', text: "Pat Pop seen stress-eating" },
+            { thresh: 80, dir: 'up', text: "NCSU hopes: deleted" }
+        ];
+
+        function updateBeardOMeter(vtProb) {
+            const beard = document.getElementById('patBeard');
+            const status = document.getElementById('beardStatus');
+            const confidence = document.getElementById('beardConfidence');
+            const tears = document.getElementById('patTears');
+            const sweat = document.getElementById('sweatDrops');
+            const mouth = document.getElementById('patMouth');
+            const leftBrow = document.getElementById('leftBrow');
+            const rightBrow = document.getElementById('rightBrow');
+
+            const beardConf = Math.max(0, 100 - vtProb);
+            confidence.textContent = beardConf.toFixed(0) + '%';
+            confidence.style.color = beardConf > 50 ? 'var(--success)' : beardConf > 25 ? 'var(--gold)' : 'var(--ncsu-red)';
+
+            // Generate beard hairs based on confidence
+            let beardHtml = '';
+            const hairCount = Math.floor(beardConf / 5) + 3;
+            const baseHeight = 20 + (beardConf * 0.5);
+
+            for (let i = 0; i < hairCount; i++) {
+                const x = 10 + (i * (80 / hairCount));
+                const h = baseHeight + Math.random() * 20 - 10;
+                const w = 12 + Math.random() * 8;
+                const delay = Math.random() * 0.5;
+                const droop = vtProb > 60 ? (vtProb - 60) * 0.3 : 0;
+                beardHtml += `<div class="beard-hair" style="left:${x}px;bottom:${-10 - droop}px;width:${w}px;height:${h}px;opacity:${0.5 + beardConf/200};transform:rotate(${(Math.random()-0.5)*10 + droop}deg);"></div>`;
+            }
+            beard.innerHTML = beardHtml;
+
+            // Facial expressions
+            if (vtProb < 20) {
+                status.textContent = "The beard is MAJESTIC and full of hubris";
+                tears.style.opacity = '0';
+                sweat.style.opacity = '0';
+                mouth.style.borderRadius = '0 0 20px 20px';
+                mouth.style.height = '15px';
+                leftBrow.style.transform = 'rotate(0deg)';
+                rightBrow.style.transform = 'rotate(0deg)';
+            } else if (vtProb < 40) {
+                status.textContent = "Slight beard twitch detected...";
+                tears.style.opacity = '0';
+                sweat.style.opacity = '0.3';
+                mouth.style.borderRadius = '0 0 15px 15px';
+            } else if (vtProb < 60) {
+                status.textContent = "Beard visibly wilting. Sweat forming.";
+                tears.style.opacity = '0';
+                sweat.style.opacity = '0.7';
+                mouth.style.borderRadius = '0 0 5px 5px';
+                mouth.style.height = '8px';
+                leftBrow.style.transform = 'rotate(-10deg)';
+                rightBrow.style.transform = 'rotate(10deg)';
+            } else if (vtProb < 80) {
+                status.textContent = "Beard patches falling out. Tears imminent.";
+                tears.style.opacity = '0.5';
+                sweat.style.opacity = '1';
+                mouth.style.borderRadius = '20px 20px 0 0';
+                mouth.style.borderTop = '3px solid #8B4513';
+                mouth.style.borderBottom = 'none';
+                mouth.style.height = '10px';
+                leftBrow.style.transform = 'rotate(-20deg)';
+                rightBrow.style.transform = 'rotate(20deg)';
+            } else {
+                status.textContent = "BEARD DESTROYED. Full emotional collapse.";
+                tears.style.opacity = '1';
+                sweat.style.opacity = '1';
+                mouth.style.borderRadius = '20px 20px 0 0';
+                mouth.style.height = '12px';
+                leftBrow.style.transform = 'rotate(-25deg) translateY(5px)';
+                rightBrow.style.transform = 'rotate(25deg) translateY(5px)';
+            }
+        }
+
+        function updateBaldCounter(vtProb) {
+            const baldCount = document.getElementById('baldCount');
+            const follicleRate = document.getElementById('follicleRate');
+            const norwood = document.getElementById('norwoodStage');
+            const testimonial = document.getElementById('baldTestimonial');
+
+            // Base + probability-driven increase
+            const count = Math.floor(2000 + (vtProb * 80) + Math.random() * 500);
+            baldCount.textContent = count.toLocaleString();
+
+            const rate = Math.floor(10 + vtProb * 0.8);
+            follicleRate.textContent = rate;
+
+            const stage = Math.min(7, Math.floor(2 + vtProb / 20));
+            norwood.textContent = stage;
+
+            // Update hair on silhouettes
+            for (let i = 1; i <= 3; i++) {
+                const hair = document.getElementById('hair' + i);
+                const glare = document.getElementById('glare' + i);
+                const threshold = 30 + (i - 1) * 25;
+
+                if (vtProb > threshold) {
+                    const loss = Math.min(1, (vtProb - threshold) / 30);
+                    hair.style.transform = `scaleY(${1 - loss})`;
+                    hair.style.opacity = 1 - loss;
+                    glare.style.opacity = loss * 0.8;
+                } else {
+                    hair.style.transform = 'scaleY(1)';
+                    hair.style.opacity = '1';
+                    glare.style.opacity = '0';
+                }
+            }
+
+            // Rotate testimonials
+            const idx = Math.floor(vtProb / 15) % testimonials.length;
+            testimonial.innerHTML = `"${testimonials[idx].text}"<span class="testimonial-author">— ${testimonials[idx].author}</span>`;
+        }
+
+        function updateCopiumCalculator(vtProb) {
+            const fill = document.getElementById('copiumFill');
+            const level = document.getElementById('copiumLevel');
+            const excuse = document.getElementById('copiumExcuse');
+            const warning = document.getElementById('copiumWarning');
+            const bubbles = document.getElementById('copiumBubbles');
+
+            // Fill tank based on VT probability
+            fill.style.height = vtProb + '%';
+
+            // Find appropriate excuse
+            const currentExcuse = excuses.find(e => vtProb >= e.min && vtProb < e.max) || excuses[excuses.length - 1];
+            level.textContent = currentExcuse.level;
+            level.style.color = currentExcuse.color;
+            excuse.textContent = `"${currentExcuse.text}"`;
+
+            // Show warning at high levels
+            warning.style.display = vtProb >= 70 ? 'block' : 'none';
+
+            // Add bubbles
+            bubbles.innerHTML = '';
+            const bubbleCount = Math.floor(vtProb / 10);
+            for (let i = 0; i < bubbleCount; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.style.width = (4 + Math.random() * 8) + 'px';
+                bubble.style.height = bubble.style.width;
+                bubble.style.left = (10 + Math.random() * 80) + '%';
+                bubble.style.bottom = (Math.random() * 30) + '%';
+                bubble.style.animationDelay = (Math.random() * 2) + 's';
+                bubble.style.animationDuration = (1.5 + Math.random()) + 's';
+                bubbles.appendChild(bubble);
+            }
+        }
+
+        function updateMiseryIndex(vtProb) {
+            const weatherIcon = document.getElementById('weatherIcon');
+            const weatherDesc = document.getElementById('weatherDesc');
+            const airQuality = document.getElementById('airQuality');
+            const traffic = document.getElementById('traffic');
+            const happiness = document.getElementById('happiness');
+            const hairDensity = document.getElementById('hairDensity');
+            const ticker = document.getElementById('tickerText');
+
+            if (vtProb < 30) {
+                weatherIcon.textContent = '⛅';
+                weatherDesc.textContent = 'Partly Cloudy';
+                airQuality.textContent = 'Moderate';
+                traffic.textContent = 'Heavy';
+                happiness.textContent = 'Below Average';
+                hairDensity.textContent = 'Thinning';
+            } else if (vtProb < 50) {
+                weatherIcon.textContent = '🌧️';
+                weatherDesc.textContent = 'Light Tears';
+                airQuality.textContent = 'Copium Detected';
+                traffic.textContent = 'Fans Leaving Early';
+                happiness.textContent = 'Declining';
+                hairDensity.textContent = 'Rapidly Thinning';
+            } else if (vtProb < 70) {
+                weatherIcon.textContent = '⛈️';
+                weatherDesc.textContent = 'Heavy Sobbing';
+                airQuality.textContent = 'Toxic Copium Levels';
+                airQuality.style.color = 'var(--gold)';
+                traffic.textContent = 'Mass Exodus';
+                happiness.textContent = 'Depressed';
+                hairDensity.textContent = 'Critical';
+                hairDensity.style.color = 'var(--ncsu-red)';
+            } else {
+                weatherIcon.textContent = '🌊';
+                weatherDesc.textContent = '100% Chance of L\'s';
+                airQuality.textContent = 'EVACUATE';
+                airQuality.style.color = 'var(--ncsu-red)';
+                traffic.textContent = 'Gridlocked by Despair';
+                happiness.textContent = 'Clinically Depressed';
+                happiness.style.color = 'var(--ncsu-red)';
+                hairDensity.textContent = 'BALD EMERGENCY';
+                hairDensity.style.color = 'var(--ncsu-red)';
+            }
+
+            // Rotate ticker
+            const tickerIdx = Math.floor(vtProb / 12.5) % tickerHeadlines.length;
+            ticker.textContent = tickerHeadlines[tickerIdx];
+        }
+
+        function updateTearOMeter(vtProb) {
+            const water = document.getElementById('bucketWater');
+            const gallons = document.getElementById('tearGallons');
+            const rate = document.getElementById('tearRate');
+            const pool = document.getElementById('poolPercent');
+            const warning = document.getElementById('floodWarning');
+            const tearFalling = document.getElementById('tearFalling');
+
+            const gal = (vtProb * 0.08).toFixed(1);
+            const waterHeight = Math.min(95, vtProb * 0.95);
+
+            water.style.height = waterHeight + '%';
+            gallons.textContent = gal + ' GALLONS';
+            rate.textContent = (vtProb * 0.01).toFixed(2);
+            pool.textContent = Math.floor(vtProb * 1.2) + '%';
+
+            tearFalling.style.display = vtProb > 20 ? 'block' : 'none';
+
+            if (vtProb < 30) {
+                warning.textContent = '📢 No flood warning... yet';
+                warning.style.background = 'rgba(0,150,255,0.1)';
+            } else if (vtProb < 60) {
+                warning.textContent = '📢 FLOOD WATCH: Tears accumulating';
+                warning.style.background = 'rgba(0,150,255,0.2)';
+            } else if (vtProb < 80) {
+                warning.textContent = '⚠️ FLOOD WARNING: Reynolds Coliseum at risk';
+                warning.style.background = 'rgba(255,200,0,0.2)';
+                warning.style.color = 'var(--gold)';
+            } else {
+                warning.textContent = '🚨 FLASH FLOOD EMERGENCY: Evacuate Raleigh immediately';
+                warning.style.background = 'rgba(255,0,0,0.2)';
+                warning.style.color = 'var(--ncsu-red)';
+            }
+        }
+
+        function updateMomentumGraph(vtProb) {
+            const line = document.getElementById('graphLine');
+            const area = document.getElementById('graphArea');
+            const points = document.getElementById('graphPoints');
+            const annots = document.getElementById('graphAnnotations');
+
+            // Generate simulated momentum through the dual
+            const probabilities = [];
+            let current = 50;
+            matchData.forEach((m, i) => {
+                // Drift toward VT prob with some randomness based on match prob
+                const drift = (vtProb - 50) / 10;
+                const matchInfluence = (m.prob - 50) / 30;
+                current = Math.max(5, Math.min(95, current + drift + matchInfluence + (Math.random() - 0.5) * 10));
+                probabilities.push({ weight: m.weight, prob: current, x: 80 + i * 60 });
+            });
+
+            // End near the slider value
+            probabilities[probabilities.length - 1].prob = vtProb;
+
+            // Draw line
+            let pathD = 'M 50,' + (200 - vtProb * 1.8);
+            let areaD = 'M 50,200 L 50,' + (200 - vtProb * 1.8);
+
+            probabilities.forEach((p, i) => {
+                const y = 200 - p.prob * 1.8;
+                pathD += ` L ${p.x},${y}`;
+                areaD += ` L ${p.x},${y}`;
+            });
+            areaD += ' L 680,200 Z';
+
+            line.setAttribute('d', pathD);
+            area.setAttribute('d', areaD);
+
+            // Draw points
+            points.innerHTML = '';
+            probabilities.forEach((p, i) => {
+                const y = 200 - p.prob * 1.8;
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('class', 'graph-point');
+                circle.setAttribute('cx', p.x);
+                circle.setAttribute('cy', y);
+                circle.setAttribute('r', 5);
+                circle.setAttribute('data-weight', p.weight);
+                circle.setAttribute('data-prob', p.prob.toFixed(1));
+                points.appendChild(circle);
+            });
+
+            // Add weight labels
+            annots.innerHTML = '';
+            probabilities.forEach((p, i) => {
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('class', 'axis-label');
+                text.setAttribute('x', p.x);
+                text.setAttribute('y', 198);
+                text.setAttribute('text-anchor', 'middle');
+                text.textContent = p.weight;
+                annots.appendChild(text);
+            });
+
+            // Add trash talk annotation
+            annotations.forEach(a => {
+                if ((a.dir === 'up' && vtProb >= a.thresh) || (a.dir === 'down' && vtProb <= a.thresh)) {
+                    const matchIdx = Math.floor(a.thresh / 12);
+                    if (matchIdx < probabilities.length) {
+                        const p = probabilities[Math.min(matchIdx, probabilities.length - 1)];
+                        const y = 200 - p.prob * 1.8;
+
+                        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        text.setAttribute('class', 'graph-annotation');
+                        text.setAttribute('x', p.x + 5);
+                        text.setAttribute('y', y - 15);
+                        text.textContent = '← ' + a.text;
+                        annots.appendChild(text);
+                    }
+                }
+            });
+        }
+
+        function updateAll(vtProb) {
+            probValue.textContent = vtProb + '%';
+            probValue.className = 'slider-value ' + (vtProb >= 50 ? 'vt' : 'ncsu');
+
+            updateBeardOMeter(vtProb);
+            updateBaldCounter(vtProb);
+            updateCopiumCalculator(vtProb);
+            updateMiseryIndex(vtProb);
+            updateTearOMeter(vtProb);
+            updateMomentumGraph(vtProb);
+        }
+
+        // Initialize
+        slider.addEventListener('input', (e) => updateAll(parseInt(e.target.value)));
+        updateAll(65);
+
+        // Animate testimonials
+        setInterval(() => {
+            const vtProb = parseInt(slider.value);
+            const idx = Math.floor(Math.random() * testimonials.length);
+            const testimonial = document.getElementById('baldTestimonial');
+            testimonial.innerHTML = `"${testimonials[idx].text}"<span class="testimonial-author">— ${testimonials[idx].author}</span>`;
+        }, 5000);
+
+        // Animate ticker
+        let tickerIdx = 0;
+        setInterval(() => {
+            tickerIdx = (tickerIdx + 1) % tickerHeadlines.length;
+            document.getElementById('tickerText').textContent = tickerHeadlines[tickerIdx];
+        }, 8000);
+    </script>
+</body>
+</html>
