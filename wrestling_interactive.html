@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VT vs NCSU Wrestling - Interactive Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e4e4e4;
+            padding: 20px;
+        }
+
+        .container { max-width: 1800px; margin: 0 auto; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0,0,0,0.2);
+            padding: 10px 15px;
+            border-radius: 10px;
+        }
+
+        .control-group label {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .control-group input[type="range"] {
+            width: 120px;
+            cursor: pointer;
+        }
+
+        .control-group .value {
+            font-weight: 700;
+            color: #e94560;
+            min-width: 50px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #4a90a4, #50c9c3);
+            color: white;
+        }
+
+        .btn:hover { transform: translateY(-2px); }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card.vt {
+            background: linear-gradient(135deg, rgba(128,0,0,0.3), rgba(255,87,51,0.2));
+            border: 1px solid rgba(255,87,51,0.3);
+        }
+
+        .stat-card.ncsu {
+            background: linear-gradient(135deg, rgba(204,0,0,0.3), rgba(255,0,0,0.2));
+            border: 1px solid rgba(255,0,0,0.3);
+        }
+
+        .stat-card.tie {
+            background: rgba(100,100,100,0.2);
+            border: 1px solid rgba(150,150,150,0.3);
+        }
+
+        .stat-card.score {
+            background: rgba(233,69,96,0.2);
+            border: 1px solid rgba(233,69,96,0.3);
+        }
+
+        .stat-card .label { font-size: 0.8rem; color: #aaa; margin-bottom: 5px; }
+        .stat-card .value { font-size: 1.8rem; font-weight: 700; }
+        .stat-card.vt .value { color: #ff6b6b; }
+        .stat-card.ncsu .value { color: #ff4444; }
+        .stat-card.tie .value { color: #aaa; }
+        .stat-card.score .value { color: #e94560; }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        .chart-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .chart-box h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #aaa;
+        }
+
+        canvas { max-height: 350px; }
+
+        .matches-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            overflow-x: auto;
+        }
+
+        .matches-section h2 {
+            font-size: 1.1rem;
+            color: #e94560;
+            margin-bottom: 15px;
+        }
+
+        .match-grid {
+            display: grid;
+            grid-template-columns: 50px 140px 140px repeat(8, 80px);
+            gap: 4px;
+            font-size: 0.8rem;
+            min-width: 900px;
+        }
+
+        .match-grid .header {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 4px;
+            text-align: center;
+            font-weight: 600;
+            color: #aaa;
+            border-radius: 4px;
+        }
+
+        .match-row {
+            display: contents;
+        }
+
+        .match-row.realized .cell {
+            background: rgba(233,69,96,0.15) !important;
+        }
+
+        .cell {
+            padding: 10px 4px;
+            text-align: center;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+
+        .cell.weight { font-weight: 700; color: #e94560; }
+        .cell.vt-name { color: #ff6b6b; text-align: left; padding-left: 8px; }
+        .cell.ncsu-name { color: #ff4444; text-align: left; padding-left: 8px; }
+
+        .cell.outcome {
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .cell.outcome:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .cell.outcome.ncsu-win { background: rgba(255,0,0,0.15); border: 1px solid rgba(255,0,0,0.2); }
+        .cell.outcome.vt-win { background: rgba(0,128,0,0.15); border: 1px solid rgba(0,128,0,0.2); }
+
+        .cell.outcome.selected {
+            background: linear-gradient(135deg, #e94560, #ff6b6b) !important;
+            color: white !important;
+            font-weight: 700;
+            border: 2px solid white !important;
+        }
+
+        .cell.outcome .pct { font-weight: 600; }
+        .cell.outcome .delta { font-size: 0.65rem; margin-top: 2px; }
+        .cell.outcome .delta.up { color: #4ade80; }
+        .cell.outcome .delta.down { color: #f87171; }
+
+        .paths-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+
+        .paths-section h2 {
+            font-size: 1.1rem;
+            color: #50c9c3;
+            margin-bottom: 15px;
+        }
+
+        .path-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+
+        .path-item .rank { color: #e94560; font-weight: 700; width: 25px; }
+        .path-item .outcomes { flex: 1; }
+        .path-item .outcomes span.vt { color: #4ade80; }
+        .path-item .outcomes span.ncsu { color: #f87171; }
+        .path-item .score { color: #aaa; }
+        .path-item .prob { color: #fbbf24; font-weight: 600; }
+
+        .query-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .query-section h2 {
+            font-size: 1.1rem;
+            color: #fbbf24;
+            margin-bottom: 15px;
+        }
+
+        .query-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .query-row select, .query-row input {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            font-size: 0.85rem;
+        }
+
+        .query-result {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>VT vs NCSU Wrestling Analysis</h1>
+                <div style="color:#666;font-size:0.8rem;margin-top:5px;">Brute Force: 1,073,741,824 paths computed</div>
+            </div>
+            <div class="controls">
+                <div class="control-group">
+                    <label>Home Advantage (NCSU):</label>
+                    <input type="range" id="homeAdv" min="-10" max="10" step="0.1" value="-3.9">
+                    <span class="value" id="homeAdvValue">-3.9</span>
+                </div>
+                <div class="control-group">
+                    <label>Unsport -1:</label>
+                    <input type="range" id="unsportMinus" min="0" max="10" step="0.5" value="1">
+                    <span class="value" id="unsportMinusValue">1%</span>
+                </div>
+                <div class="control-group">
+                    <label>Unsport +1:</label>
+                    <input type="range" id="unsportPlus" min="0" max="10" step="0.5" value="5">
+                    <span class="value" id="unsportPlusValue">5%</span>
+                </div>
+                <button class="btn btn-reset" onclick="resetAll()">Reset All</button>
+            </div>
+        </header>
+
+        <div class="stats-row">
+            <div class="stat-card vt">
+                <div class="label">VT Win (Base)</div>
+                <div class="value" id="vtWinBase">55.21%</div>
+            </div>
+            <div class="stat-card vt">
+                <div class="label">VT Win (Adjusted)</div>
+                <div class="value" id="vtWinAdj">--</div>
+            </div>
+            <div class="stat-card tie">
+                <div class="label">Tie (Adjusted)</div>
+                <div class="value" id="tieAdj">--</div>
+            </div>
+            <div class="stat-card ncsu">
+                <div class="label">NCSU Win (Adjusted)</div>
+                <div class="value" id="ncsuWinAdj">--</div>
+            </div>
+            <div class="stat-card score" id="scoreCard" style="display:none;">
+                <div class="label">Current Score</div>
+                <div class="value" id="currentScore">0-0</div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="chart-box">
+                <h3>Score Differential Distribution (with adjustments)</h3>
+                <canvas id="diffChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Score Heatmap</h3>
+                <canvas id="heatChart"></canvas>
+            </div>
+        </div>
+
+        <div class="matches-section">
+            <h2>Match Outcomes - Click to Lock In Result</h2>
+            <div class="match-grid" id="matchGrid"></div>
+        </div>
+
+        <div class="paths-section">
+            <h2>Top 15 Most Likely Paths to Current State</h2>
+            <div id="topPaths"></div>
+        </div>
+
+        <div class="query-section">
+            <h2>Conditional Query</h2>
+            <div class="query-row">
+                <select id="queryMatch">
+                    <option value="">Select match...</option>
+                </select>
+                <select id="queryOutcome">
+                    <option value="">Select outcome...</option>
+                </select>
+                <button class="btn" style="background:#e94560;color:white;" onclick="runQuery()">Calculate</button>
+            </div>
+            <div class="query-result" id="queryResult">Select a match and outcome to see conditional probabilities.</div>
+        </div>
+    </div>
+
+    <script src="wrestling_bruteforce_data.js"></script>
+    <script>
+        // Match metadata
+        const MATCHES = [
+            {weight: 125, vt: "#3 Ventresca", ncsu: "#5 Robinson", probs: [1.5, 1, 5, 20, 55, 15, 1, 1.5]},
+            {weight: 133, vt: "#7 Seidel", ncsu: "#33 Redding", probs: [2.25, 0.25, 0.5, 7, 5, 10, 60, 15]},
+            {weight: 141, vt: "#22 Crook", ncsu: "#13 Jack", probs: [2.5, 7.5, 40, 30, 15, 3, 0.5, 1.5]},
+            {weight: 149, vt: "#9 Gaj", ncsu: "#5 Buesgens", probs: [1, 1.5, 20, 38, 25, 10, 2.5, 2]},
+            {weight: 157, vt: "#16 Miller", ncsu: "Tucker", probs: [2, 0.25, 2.75, 15, 35, 20, 20, 5]},
+            {weight: 165, vt: "#12 Burton", ncsu: "#13 Denny", probs: [0.5, 1, 12, 34.5, 37.5, 13, 0.5, 1]},
+            {weight: 174, vt: "#31 Desiante", ncsu: "#4 Singleton", probs: [3, 35, 25, 27, 8, 1.25, 0.25, 0.5]},
+            {weight: 184, vt: "#32 Bullock", ncsu: "Gates", probs: [0.5, 1, 12, 33, 36, 15, 2, 0.5]},
+            {weight: 197, vt: "#17 Sasso", ncsu: "#26 Brophy", probs: [1.5, 1, 7.5, 12.5, 40, 30, 5, 2.5]},
+            {weight: 285, vt: "#16 Mullen", ncsu: "#2 Trumble", probs: [2, 3, 30, 47.25, 15, 2, 0.25, 0.5]},
+        ];
+
+        const OUTCOMES = [-6, -5, -4, -3, 3, 4, 5, 6];
+        const OUTCOME_LABELS = ["-6 Fall", "-5 Tech", "-4 Maj", "-3 Dec", "+3 Dec", "+4 Maj", "+5 Tech", "+6 Fall"];
+
+        let realized = new Array(10).fill(null);
+        let diffChart = null, heatChart = null;
+
+        // Apply biases to differential distribution
+        function applyBiases(diffProbs) {
+            const homeAdv = parseFloat(document.getElementById('homeAdv').value);
+            const unsportMinus = parseFloat(document.getElementById('unsportMinus').value) / 100;
+            const unsportPlus = parseFloat(document.getElementById('unsportPlus').value) / 100;
+
+            // Shift by home advantage
+            let shifted = {};
+            for (const [d, p] of Object.entries(diffProbs)) {
+                const diff = parseFloat(d);
+                const newDiff = diff + homeAdv;
+                const floor = Math.floor(newDiff);
+                const ceil = Math.ceil(newDiff);
+                const frac = newDiff - floor;
+                shifted[floor] = (shifted[floor] || 0) + p * (1 - frac);
+                if (frac > 0) shifted[ceil] = (shifted[ceil] || 0) + p * frac;
+            }
+
+            // Apply unsportsmanlike
+            const pNone = (1 - unsportMinus) * (1 - unsportPlus);
+            const pMinus = unsportMinus * (1 - unsportPlus);
+            const pPlus = (1 - unsportMinus) * unsportPlus;
+            const pBoth = unsportMinus * unsportPlus;
+
+            let final = {};
+            for (const [d, p] of Object.entries(shifted)) {
+                const diff = parseInt(d);
+                final[diff] = (final[diff] || 0) + p * (pNone + pBoth);
+                final[diff - 1] = (final[diff - 1] || 0) + p * pMinus;
+                final[diff + 1] = (final[diff + 1] || 0) + p * pPlus;
+            }
+
+            return final;
+        }
+
+        // Compute diff distribution with realized outcomes using DP
+        function computeCurrentDiffProbs() {
+            let dp = {0: 1.0};
+
+            for (let m = 0; m < 10; m++) {
+                let newDp = {};
+                const probs = MATCHES[m].probs;
+
+                if (realized[m] !== null) {
+                    // Fixed outcome
+                    const outcome = OUTCOMES[realized[m]];
+                    for (const [d, p] of Object.entries(dp)) {
+                        const newD = parseInt(d) + outcome;
+                        newDp[newD] = (newDp[newD] || 0) + p;
+                    }
+                } else {
+                    // All outcomes possible
+                    for (const [d, p] of Object.entries(dp)) {
+                        for (let o = 0; o < 8; o++) {
+                            const newD = parseInt(d) + OUTCOMES[o];
+                            newDp[newD] = (newDp[newD] || 0) + p * probs[o] / 100;
+                        }
+                    }
+                }
+                dp = newDp;
+            }
+
+            return dp;
+        }
+
+        function calcWinProbs(diffProbs) {
+            let vt = 0, ncsu = 0, tie = 0;
+            for (const [d, p] of Object.entries(diffProbs)) {
+                const diff = parseInt(d);
+                if (diff > 0) vt += p;
+                else if (diff < 0) ncsu += p;
+                else tie += p;
+            }
+            return {vt, ncsu, tie};
+        }
+
+        function getCurrentScore() {
+            let vt = 0, ncsu = 0;
+            for (let m = 0; m < 10; m++) {
+                if (realized[m] !== null) {
+                    const o = OUTCOMES[realized[m]];
+                    if (o > 0) vt += o; else ncsu -= o;
+                }
+            }
+            return {vt, ncsu};
+        }
+
+        function updateAll() {
+            // Update slider displays
+            document.getElementById('homeAdvValue').textContent = document.getElementById('homeAdv').value;
+            document.getElementById('unsportMinusValue').textContent = document.getElementById('unsportMinus').value + '%';
+            document.getElementById('unsportPlusValue').textContent = document.getElementById('unsportPlus').value + '%';
+
+            // Compute base probabilities
+            const baseDiff = computeCurrentDiffProbs();
+            const baseWin = calcWinProbs(baseDiff);
+
+            // Compute adjusted probabilities
+            const adjDiff = applyBiases(baseDiff);
+            const adjWin = calcWinProbs(adjDiff);
+
+            // Update stats
+            document.getElementById('vtWinBase').textContent = (baseWin.vt * 100).toFixed(2) + '%';
+            document.getElementById('vtWinAdj').textContent = (adjWin.vt * 100).toFixed(2) + '%';
+            document.getElementById('ncsuWinAdj').textContent = (adjWin.ncsu * 100).toFixed(2) + '%';
+            document.getElementById('tieAdj').textContent = (adjWin.tie * 100).toFixed(2) + '%';
+
+            // Current score
+            const hasRealized = realized.some(r => r !== null);
+            const scoreCard = document.getElementById('scoreCard');
+            if (hasRealized) {
+                const score = getCurrentScore();
+                document.getElementById('currentScore').textContent = `VT ${score.vt} - NCSU ${score.ncsu}`;
+                scoreCard.style.display = 'block';
+            } else {
+                scoreCard.style.display = 'none';
+            }
+
+            // Update charts
+            updateDiffChart(adjDiff);
+            updateHeatChart(baseDiff);
+
+            // Update match grid
+            updateMatchGrid(baseWin.vt);
+
+            // Update top paths
+            updateTopPaths();
+        }
+
+        function updateDiffChart(diffProbs) {
+            const diffs = Object.keys(diffProbs).map(Number).sort((a, b) => a - b);
+            const probs = diffs.map(d => diffProbs[d] || 0);
+            const colors = diffs.map(d => d > 0 ? 'rgba(74,222,128,0.8)' : d < 0 ? 'rgba(248,113,113,0.8)' : 'rgba(251,191,36,0.8)');
+
+            if (diffChart) {
+                diffChart.data.labels = diffs;
+                diffChart.data.datasets[0].data = probs;
+                diffChart.data.datasets[0].backgroundColor = colors;
+                diffChart.update();
+            } else {
+                diffChart = new Chart(document.getElementById('diffChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: diffs,
+                        datasets: [{data: probs, backgroundColor: colors}]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {legend: {display: false}},
+                        scales: {
+                            x: {title: {display: true, text: 'Differential (VT - NCSU)', color: '#888'}, ticks: {color: '#666'}, grid: {color: 'rgba(255,255,255,0.05)'}},
+                            y: {title: {display: true, text: 'Probability', color: '#888'}, ticks: {color: '#666'}, grid: {color: 'rgba(255,255,255,0.05)'}}
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateHeatChart(diffProbs) {
+            // Use stored score matrix from brute force for base, or compute for realized
+            const hasRealized = realized.some(r => r !== null);
+            let data = [];
+
+            if (!hasRealized && typeof BRUTEFORCE_DATA !== 'undefined') {
+                // Use precomputed data
+                for (const [key, prob] of Object.entries(BRUTEFORCE_DATA.scoreMatrix)) {
+                    const [vt, ncsu] = key.split(',').map(Number);
+                    if (prob > 1e-5) data.push({x: vt, y: ncsu, v: prob});
+                }
+            } else {
+                // Compute from DP for current state (approximate via marginals)
+                // For simplicity, use differential to infer score ranges
+                for (const [d, prob] of Object.entries(diffProbs)) {
+                    if (prob > 1e-5) {
+                        const diff = parseInt(d);
+                        // Approximate: assume scores around 18-20 range
+                        const vtBase = 18, ncsuBase = 18;
+                        const vt = Math.max(0, vtBase + Math.floor(diff/2));
+                        const ncsu = Math.max(0, ncsuBase - Math.ceil(diff/2));
+                        data.push({x: vt, y: ncsu, v: prob});
+                    }
+                }
+            }
+
+            if (heatChart) {
+                heatChart.data.datasets[0].data = data;
+                heatChart.data.datasets[0].backgroundColor = data.map(d => `rgba(233,69,96,${Math.min(1, d.v * 40)})`);
+                heatChart.data.datasets[0].pointRadius = data.map(d => Math.max(2, Math.sqrt(d.v) * 80));
+                heatChart.update();
+            } else {
+                heatChart = new Chart(document.getElementById('heatChart'), {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            data: data,
+                            backgroundColor: data.map(d => `rgba(233,69,96,${Math.min(1, d.v * 40)})`),
+                            pointRadius: data.map(d => Math.max(2, Math.sqrt(d.v) * 80))
+                        }, {
+                            data: Array.from({length: 50}, (_, i) => ({x: i, y: i})),
+                            type: 'line',
+                            borderColor: 'rgba(80,201,195,0.6)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {legend: {display: false}},
+                        scales: {
+                            x: {title: {display: true, text: 'VT Score', color: '#888'}, min: 0, max: 45, ticks: {color: '#666'}, grid: {color: 'rgba(255,255,255,0.05)'}},
+                            y: {title: {display: true, text: 'NCSU Score', color: '#888'}, min: 0, max: 45, ticks: {color: '#666'}, grid: {color: 'rgba(255,255,255,0.05)'}}
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateMatchGrid(baseVtWin) {
+            let html = `
+                <div class="header">Wt</div>
+                <div class="header">VT</div>
+                <div class="header">NCSU</div>
+                ${OUTCOME_LABELS.map(l => `<div class="header">${l}</div>`).join('')}
+            `;
+
+            for (let m = 0; m < 10; m++) {
+                const match = MATCHES[m];
+                const isRealized = realized[m] !== null;
+
+                html += `<div class="match-row ${isRealized ? 'realized' : ''}">`;
+                html += `<div class="cell weight">${match.weight}</div>`;
+                html += `<div class="cell vt-name">${match.vt}</div>`;
+                html += `<div class="cell ncsu-name">${match.ncsu}</div>`;
+
+                for (let o = 0; o < 8; o++) {
+                    const isSelected = realized[m] === o;
+                    const isNcsuWin = o < 4;
+
+                    // Calculate conditional VT win prob
+                    let condVtWin = baseVtWin;
+                    if (typeof BRUTEFORCE_DATA !== 'undefined' && !isRealized) {
+                        condVtWin = BRUTEFORCE_DATA.conditionalVTWin[m][o];
+                    }
+                    const delta = condVtWin - baseVtWin;
+                    const deltaClass = delta > 0.001 ? 'up' : delta < -0.001 ? 'down' : '';
+
+                    const showProb = !isRealized || isSelected;
+
+                    html += `<div class="cell outcome ${isNcsuWin ? 'ncsu-win' : 'vt-win'} ${isSelected ? 'selected' : ''}"
+                                 onclick="toggleOutcome(${m}, ${o})">
+                        <div class="pct">${showProb ? match.probs[o].toFixed(1) + '%' : '-'}</div>
+                        ${!isRealized ? `<div class="delta ${deltaClass}">${delta >= 0 ? '+' : ''}${(delta * 100).toFixed(1)}%</div>` : ''}
+                    </div>`;
+                }
+
+                html += '</div>';
+            }
+
+            document.getElementById('matchGrid').innerHTML = html;
+        }
+
+        function updateTopPaths() {
+            if (typeof BRUTEFORCE_DATA === 'undefined') {
+                document.getElementById('topPaths').innerHTML = '<div style="color:#666">Loading brute force data...</div>';
+                return;
+            }
+
+            // Find differential that matches current realized outcomes
+            const score = getCurrentScore();
+            const realizedDiff = score.vt - score.ncsu;
+
+            // Get paths that are consistent with realized outcomes
+            let html = '';
+            let pathCount = 0;
+
+            for (const [diff, paths] of Object.entries(BRUTEFORCE_DATA.topPaths)) {
+                for (const path of paths) {
+                    // Check if path matches realized outcomes
+                    let matches = true;
+                    for (let m = 0; m < 10; m++) {
+                        if (realized[m] !== null && path.o[m] !== realized[m]) {
+                            matches = false;
+                            break;
+                        }
+                    }
+
+                    if (matches && pathCount < 15) {
+                        const outcomesHtml = path.o.map((o, i) => {
+                            const pts = OUTCOMES[o];
+                            const cls = pts > 0 ? 'vt' : 'ncsu';
+                            const highlight = realized[i] !== null ? 'style="font-weight:bold;text-decoration:underline;"' : '';
+                            return `<span class="${cls}" ${highlight}>${pts > 0 ? '+' : ''}${pts}</span>`;
+                        }).join(' ');
+
+                        const winner = path.vt > path.ncsu ? 'VT' : path.ncsu > path.vt ? 'NCSU' : 'TIE';
+
+                        html += `<div class="path-item">
+                            <span class="rank">${pathCount + 1}.</span>
+                            <span class="outcomes">${outcomesHtml}</span>
+                            <span class="score">${path.vt}-${path.ncsu} (${winner})</span>
+                            <span class="prob">${(path.p * 100).toFixed(4)}%</span>
+                        </div>`;
+                        pathCount++;
+                    }
+                }
+            }
+
+            if (pathCount === 0) {
+                html = '<div style="color:#666">No paths match current selection.</div>';
+            }
+
+            document.getElementById('topPaths').innerHTML = html;
+        }
+
+        function toggleOutcome(match, outcome) {
+            if (realized[match] === outcome) {
+                realized[match] = null;
+            } else {
+                realized[match] = outcome;
+            }
+            updateAll();
+        }
+
+        function resetAll() {
+            realized = new Array(10).fill(null);
+            document.getElementById('homeAdv').value = -3.9;
+            document.getElementById('unsportMinus').value = 1;
+            document.getElementById('unsportPlus').value = 5;
+            updateAll();
+        }
+
+        function runQuery() {
+            const matchIdx = parseInt(document.getElementById('queryMatch').value);
+            const outcomeIdx = parseInt(document.getElementById('queryOutcome').value);
+
+            if (isNaN(matchIdx) || isNaN(outcomeIdx)) {
+                document.getElementById('queryResult').textContent = 'Please select both match and outcome.';
+                return;
+            }
+
+            const match = MATCHES[matchIdx];
+            const outcome = OUTCOMES[outcomeIdx];
+            const condVtWin = BRUTEFORCE_DATA.conditionalVTWin[matchIdx][outcomeIdx];
+
+            let result = `Match: ${match.weight} lbs - ${match.vt} vs ${match.ncsu}\n`;
+            result += `Outcome: ${OUTCOME_LABELS[outcomeIdx]} (${outcome > 0 ? 'VT' : 'NCSU'} wins bout)\n`;
+            result += `Base probability: ${match.probs[outcomeIdx].toFixed(2)}%\n\n`;
+            result += `If this outcome occurs:\n`;
+            result += `  P(VT wins dual) = ${(condVtWin * 100).toFixed(4)}%\n`;
+            result += `  P(NCSU wins dual) = ${((1 - condVtWin - BRUTEFORCE_DATA.tie) * 100).toFixed(4)}%\n`;
+            result += `\nChange from base (${(BRUTEFORCE_DATA.vtWin * 100).toFixed(2)}%):\n`;
+            result += `  Delta = ${((condVtWin - BRUTEFORCE_DATA.vtWin) * 100).toFixed(4)}%`;
+
+            document.getElementById('queryResult').textContent = result;
+        }
+
+        // Initialize query dropdowns
+        function initQueryDropdowns() {
+            const matchSelect = document.getElementById('queryMatch');
+            const outcomeSelect = document.getElementById('queryOutcome');
+
+            MATCHES.forEach((m, i) => {
+                matchSelect.innerHTML += `<option value="${i}">${m.weight} lbs: ${m.vt} vs ${m.ncsu}</option>`;
+            });
+
+            OUTCOME_LABELS.forEach((l, i) => {
+                outcomeSelect.innerHTML += `<option value="${i}">${l}</option>`;
+            });
+        }
+
+        // Event listeners for sliders
+        document.getElementById('homeAdv').addEventListener('input', updateAll);
+        document.getElementById('unsportMinus').addEventListener('input', updateAll);
+        document.getElementById('unsportPlus').addEventListener('input', updateAll);
+
+        // Initialize
+        initQueryDropdowns();
+        updateAll();
+    </script>
+</body>
+</html>
