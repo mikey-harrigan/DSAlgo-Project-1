@@ -1,0 +1,259 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ops-black: #0a0a0a;
+  --ops-cyan: #00f5ff;
+  --ops-red: #ff3333;
+  --ops-gold: #ffd700;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--ops-black);
+  color: #ffffff;
+  font-family: 'JetBrains Mono', monospace;
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+html {
+  height: -webkit-fill-available;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+/* Scanline overlay */
+.scanlines::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.1) 0px,
+    rgba(0, 0, 0, 0.1) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 9998;
+}
+
+.scanlines::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 245, 255, 0.1),
+    transparent
+  );
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+@keyframes scanline {
+  0% { top: -4px; }
+  100% { top: 100vh; }
+}
+
+/* CRT flicker effect */
+.crt-flicker {
+  animation: flicker 0.15s infinite;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.97; }
+}
+
+/* Glitch effect */
+.glitch {
+  animation: glitch 0.3s infinite;
+}
+
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+/* Noise texture */
+.noise {
+  position: relative;
+}
+
+.noise::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Classified text effect */
+.classified {
+  background: linear-gradient(90deg, var(--ops-cyan), var(--ops-cyan));
+  background-clip: text;
+  -webkit-background-clip: text;
+  text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+}
+
+/* Redacted text */
+.redacted {
+  background-color: #333;
+  color: transparent;
+  user-select: none;
+  position: relative;
+}
+
+.redacted::after {
+  content: '[REDACTED]';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #666;
+  font-size: 0.7em;
+}
+
+/* Pulsing glow */
+.glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 5px var(--ops-cyan), 0 0 10px var(--ops-cyan); }
+  50% { box-shadow: 0 0 20px var(--ops-cyan), 0 0 30px var(--ops-cyan); }
+}
+
+/* Terminal cursor */
+.terminal-cursor::after {
+  content: '_';
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Dossier card */
+.dossier-card {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+  border: 1px solid #333;
+  position: relative;
+  overflow: hidden;
+}
+
+.dossier-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--ops-cyan), transparent);
+}
+
+/* Level badges */
+.badge-level1 { border-color: #4ade80; color: #4ade80; }
+.badge-level2 { border-color: #fbbf24; color: #fbbf24; }
+.badge-level3 { border-color: #f87171; color: #f87171; }
+.badge-eyes-only { border-color: #c084fc; color: #c084fc; }
+
+/* Squirrel rain */
+.squirrel-rain {
+  position: fixed;
+  font-size: 2rem;
+  animation: fall 3s linear forwards;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+@keyframes fall {
+  0% {
+    transform: translateY(-100px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* Inverted mode for mirror easter egg */
+.inverted {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Protocol 17 gold border */
+.protocol-17 {
+  border: 3px solid var(--ops-gold) !important;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ops-cyan);
+}
+
+/* Button styles */
+.btn-primary {
+  @apply bg-ops-cyan text-ops-black font-bold py-3 px-6 rounded border-2 border-ops-cyan;
+  @apply hover:bg-transparent hover:text-ops-cyan transition-all duration-200;
+  @apply active:scale-95;
+}
+
+.btn-secondary {
+  @apply bg-transparent text-ops-cyan font-bold py-3 px-6 rounded border-2 border-ops-cyan;
+  @apply hover:bg-ops-cyan hover:text-ops-black transition-all duration-200;
+  @apply active:scale-95;
+}
+
+/* Red alert mode */
+.red-alert {
+  background-color: #1a0000 !important;
+}
+
+.red-alert * {
+  color: #ff3333 !important;
+  border-color: #ff3333 !important;
+}
