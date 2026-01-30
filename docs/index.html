@@ -443,6 +443,113 @@
         .match-ev.positive { background: rgba(34,197,94,0.2); color: var(--success); }
         .match-ev.negative { background: rgba(204,0,0,0.2); color: var(--ncsu-red); }
 
+        /* Timeline Chart */
+        .timeline-chart {
+            position: relative;
+            height: 180px;
+            padding: 10px 0;
+        }
+
+        .timeline-grid {
+            position: absolute;
+            top: 20px;
+            left: 40px;
+            right: 10px;
+            bottom: 30px;
+            border-left: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .timeline-line-50 {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            border-top: 1px dashed var(--text-muted);
+            opacity: 0.5;
+        }
+
+        .timeline-y-labels {
+            position: absolute;
+            left: 0;
+            top: 20px;
+            bottom: 30px;
+            width: 35px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-align: right;
+            padding-right: 5px;
+        }
+
+        .timeline-x-labels {
+            position: absolute;
+            left: 40px;
+            right: 10px;
+            bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.55rem;
+            color: var(--text-muted);
+        }
+
+        .timeline-points {
+            position: absolute;
+            top: 20px;
+            left: 40px;
+            right: 10px;
+            bottom: 30px;
+        }
+
+        .timeline-path {
+            fill: none;
+            stroke: var(--hokie-orange);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .timeline-path-expected {
+            fill: none;
+            stroke: var(--text-muted);
+            stroke-width: 2;
+            stroke-dasharray: 4,4;
+            opacity: 0.5;
+        }
+
+        .timeline-point {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--hokie-orange);
+            border: 2px solid var(--bg-card);
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timeline-point:hover {
+            transform: translate(-50%, -50%) scale(1.3);
+        }
+
+        .timeline-point.future {
+            background: var(--bg-elevated);
+            border-color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        .timeline-point-label {
+            position: absolute;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--hokie-orange);
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+
         /* Paths */
         .path-item {
             background: var(--bg-elevated);
@@ -575,6 +682,14 @@
 
         <div class="card">
             <div class="card-header">
+                <div class="card-icon chart">📈</div>
+                <div class="card-title">VT Win Probability Timeline</div>
+            </div>
+            <div class="timeline-chart" id="timelineChart"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
                 <div class="card-icon chart">📊</div>
                 <div class="card-title">Score Differential Distribution</div>
             </div>
@@ -604,16 +719,16 @@
 
 <script>
 const MATCHES = [
-    {weight: 125, vt: "Ventresca", ncsu: "Robinson", probs: [1.5, 1, 5, 20, 55, 15, 1, 1.5]},
-    {weight: 133, vt: "Seidel", ncsu: "Redding", probs: [2.25, 0.25, 0.5, 7, 5, 10, 60, 15]},
-    {weight: 141, vt: "Crook", ncsu: "Jack", probs: [2.5, 7.5, 40, 30, 15, 3, 0.5, 1.5]},
-    {weight: 149, vt: "Gaj", ncsu: "Buesgens", probs: [1, 1.5, 20, 38, 25, 10, 2.5, 2]},
-    {weight: 157, vt: "Miller", ncsu: "Tucker", probs: [2, 0.25, 2.75, 15, 35, 20, 20, 5]},
-    {weight: 165, vt: "Burton", ncsu: "Denny", probs: [0.5, 1, 12, 34.5, 37.5, 13, 0.5, 1]},
-    {weight: 174, vt: "Desiante", ncsu: "Singleton", probs: [3, 35, 25, 27, 8, 1.25, 0.25, 0.5]},
-    {weight: 184, vt: "Bullock", ncsu: "Gates", probs: [0.5, 1, 12, 33, 36, 15, 2, 0.5]},
-    {weight: 197, vt: "Sasso", ncsu: "Brophy", probs: [1.5, 1, 7.5, 12.5, 40, 30, 5, 2.5]},
-    {weight: 285, vt: "Mullen", ncsu: "Trumble", probs: [2, 3, 30, 47.25, 15, 2, 0.25, 0.5]},
+    {weight: 125, vt: "#3 Ventresca", ncsu: "#5 Robinson", probs: [1.5, 1, 5, 20, 55, 15, 1, 1.5]},
+    {weight: 133, vt: "#7 Seidel", ncsu: "#33 Redding", probs: [2.25, 0.25, 0.5, 7, 5, 10, 60, 15]},
+    {weight: 141, vt: "#22 Crook", ncsu: "#13 Jack", probs: [2.5, 7.5, 40, 30, 15, 3, 0.5, 1.5]},
+    {weight: 149, vt: "#9 Gaj", ncsu: "#5 Buesgens", probs: [1, 1.5, 20, 38, 25, 10, 2.5, 2]},
+    {weight: 157, vt: "#16 Miller", ncsu: "Tucker", probs: [2, 0.25, 2.75, 15, 35, 20, 20, 5]},
+    {weight: 165, vt: "#12 Burton", ncsu: "#13 Denny", probs: [0.5, 1, 12, 34.5, 37.5, 13, 0.5, 1]},
+    {weight: 174, vt: "#31 Desiante", ncsu: "#4 Singleton", probs: [3, 35, 25, 27, 8, 1.25, 0.25, 0.5]},
+    {weight: 184, vt: "#32 Bullock", ncsu: "Gates", probs: [0.5, 1, 12, 33, 36, 15, 2, 0.5]},
+    {weight: 197, vt: "#17 Sasso", ncsu: "#26 Brophy", probs: [1.5, 1, 7.5, 12.5, 40, 30, 5, 2.5]},
+    {weight: 285, vt: "#16 Mullen", ncsu: "#2 Trumble", probs: [2, 3, 30, 47.25, 15, 2, 0.25, 0.5]},
 ];
 const OUTCOMES = [-6, -5, -4, -3, 3, 4, 5, 6];
 const LABELS = ["-6", "-5", "-4", "-3", "+3", "+4", "+5", "+6"];
@@ -709,6 +824,7 @@ function updateAll() {
     } else {
         document.getElementById('scoreDisplay').style.display = 'none';
     }
+    updateTimeline();
     updateDiffChart(adjDiff);
     updateMatchList();
     updateTopPaths();
@@ -727,6 +843,153 @@ function updateDiffChart(diffProbs) {
         html += '<div class="bar-row"><div class="bar-label">' + (d > 0 ? '+' : '') + d + '</div><div class="bar-container"><div class="bar ' + cls + '" style="width:' + width + '%">' + (p*100).toFixed(1) + '%</div></div></div>';
     }
     document.getElementById('diffChart').innerHTML = html;
+}
+
+function calcVTWinAtMatch(upToMatch) {
+    // Calculate VT win prob after matches 0..upToMatch are resolved
+    let dp = {0: 1.0};
+    for (let m = 0; m <= upToMatch; m++) {
+        let newDp = {};
+        const probs = MATCHES[m].probs;
+        if (realized[m] !== null) {
+            const outcome = OUTCOMES[realized[m]];
+            for (const [d, p] of Object.entries(dp)) {
+                const newD = parseInt(d) + outcome;
+                newDp[newD] = (newDp[newD] || 0) + p;
+            }
+        } else {
+            for (const [d, p] of Object.entries(dp)) {
+                for (let o = 0; o < 8; o++) {
+                    const newD = parseInt(d) + OUTCOMES[o];
+                    newDp[newD] = (newDp[newD] || 0) + p * probs[o] / 100;
+                }
+            }
+        }
+        dp = newDp;
+    }
+    // Now simulate remaining matches with expected outcomes
+    for (let m = upToMatch + 1; m < 10; m++) {
+        let newDp = {};
+        const probs = MATCHES[m].probs;
+        for (const [d, p] of Object.entries(dp)) {
+            for (let o = 0; o < 8; o++) {
+                const newD = parseInt(d) + OUTCOMES[o];
+                newDp[newD] = (newDp[newD] || 0) + p * probs[o] / 100;
+            }
+        }
+        dp = newDp;
+    }
+    let vtWin = 0;
+    for (const [d, p] of Object.entries(dp)) {
+        if (parseInt(d) > 0) vtWin += p;
+    }
+    return vtWin;
+}
+
+function updateTimeline() {
+    const container = document.getElementById('timelineChart');
+    const width = container.offsetWidth - 50;
+    const height = 130;
+    const padLeft = 40, padRight = 10, padTop = 20, padBot = 30;
+    const graphW = width - padLeft - padRight;
+    const graphH = height - padTop - padBot;
+
+    // Find last realized match
+    let lastRealized = -1;
+    for (let i = 0; i < 10; i++) {
+        if (realized[i] !== null) lastRealized = i;
+    }
+
+    // Calculate VT win prob at each point
+    // Point 0 = before any matches (base)
+    // Point 1 = after match 0, etc.
+    let points = [];
+    let baseVT = calcVTWinAtMatch(-1); // Before any matches - just use full expectation
+
+    // Actually compute properly: base before any locked
+    let dpBase = {0: 1.0};
+    for (let m = 0; m < 10; m++) {
+        let newDp = {};
+        const probs = MATCHES[m].probs;
+        for (const [d, p] of Object.entries(dpBase)) {
+            for (let o = 0; o < 8; o++) {
+                const newD = parseInt(d) + OUTCOMES[o];
+                newDp[newD] = (newDp[newD] || 0) + p * probs[o] / 100;
+            }
+        }
+        dpBase = newDp;
+    }
+    baseVT = 0;
+    for (const [d, p] of Object.entries(dpBase)) {
+        if (parseInt(d) > 0) baseVT += p;
+    }
+
+    points.push({x: 0, y: baseVT, label: 'Start', realized: true});
+
+    // Add points for each match
+    for (let m = 0; m < 10; m++) {
+        const isRealized = realized[m] !== null;
+        const afterM = calcVTWinAtMatch(m);
+        points.push({
+            x: m + 1,
+            y: afterM,
+            label: MATCHES[m].weight + '',
+            realized: isRealized || m <= lastRealized
+        });
+    }
+
+    // Scale Y from 0% to 100%
+    const yScale = function(v) { return padTop + graphH * (1 - v); };
+    const xScale = function(i) { return padLeft + (i / 10) * graphW; };
+
+    let html = '<div class="timeline-grid"><div class="timeline-line-50"></div></div>';
+    html += '<div class="timeline-y-labels"><span>100%</span><span>50%</span><span>0%</span></div>';
+
+    // X labels
+    html += '<div class="timeline-x-labels">';
+    html += '<span>Start</span>';
+    for (let m = 0; m < 10; m++) {
+        html += '<span>' + MATCHES[m].weight + '</span>';
+    }
+    html += '</div>';
+
+    // SVG for lines
+    html += '<svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">';
+
+    // Expected path (dashed line at base level)
+    html += '<line x1="' + xScale(0) + '" y1="' + yScale(baseVT) + '" x2="' + xScale(10) + '" y2="' + yScale(baseVT) + '" class="timeline-path-expected"/>';
+
+    // Actual path
+    let pathD = 'M ' + xScale(0) + ' ' + yScale(points[0].y);
+    for (let i = 1; i < points.length; i++) {
+        if (points[i].realized || i <= lastRealized + 2) {
+            pathD += ' L ' + xScale(i) + ' ' + yScale(points[i].y);
+        }
+    }
+    html += '<path d="' + pathD + '" class="timeline-path"/>';
+    html += '</svg>';
+
+    // Points
+    html += '<div class="timeline-points">';
+    for (let i = 0; i < points.length; i++) {
+        const pt = points[i];
+        const x = ((i / 10) * 100).toFixed(1);
+        const y = ((1 - pt.y) * 100).toFixed(1);
+        const cls = (pt.realized || i === 0) ? '' : ' future';
+        html += '<div class="timeline-point' + cls + '" style="left:' + x + '%;top:' + y + '%;"></div>';
+        if (pt.realized && i > 0) {
+            const labelY = pt.y > 0.5 ? 'top:-18px;' : 'bottom:-18px;';
+            html += '<div class="timeline-point-label" style="left:' + x + '%;' + labelY + '">' + (pt.y * 100).toFixed(0) + '%</div>';
+        }
+    }
+    // Show current value label
+    if (lastRealized >= 0) {
+        const lastPt = points[lastRealized + 1];
+        html += '<div style="position:absolute;right:0;top:5px;font-size:0.7rem;color:var(--hokie-orange);font-weight:600;">Current: ' + (lastPt.y * 100).toFixed(1) + '%</div>';
+    }
+    html += '</div>';
+
+    container.innerHTML = html;
 }
 
 function calcConditionalVTWin(matchIdx, outcomeIdx) {
