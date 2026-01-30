@@ -378,38 +378,70 @@
         .outcome-btn {
             flex: 1;
             min-width: calc(25% - 3px);
-            padding: 8px 4px;
+            padding: 6px 2px;
             border-radius: 8px;
             border: 2px solid transparent;
             cursor: pointer;
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1rem;
             transition: all 0.15s;
             text-align: center;
         }
 
         .outcome-btn.vt-win {
             background: rgba(229,117,31,0.15);
-            color: var(--hokie-orange);
             border-color: rgba(229,117,31,0.3);
         }
 
         .outcome-btn.ncsu-win {
             background: rgba(204,0,0,0.15);
-            color: var(--ncsu-red);
             border-color: rgba(204,0,0,0.3);
         }
 
         .outcome-btn:hover {
-            transform: scale(1.05);
+            transform: scale(1.02);
+            z-index: 5;
         }
 
         .outcome-btn.selected {
             background: var(--hokie-orange) !important;
-            color: white !important;
             border-color: white !important;
             box-shadow: 0 4px 12px rgba(229,117,31,0.4);
         }
+
+        .outcome-btn.selected .btn-label,
+        .outcome-btn.selected .btn-prob,
+        .outcome-btn.selected .btn-delta { color: white !important; }
+
+        .btn-label {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+        .outcome-btn.vt-win .btn-label { color: var(--hokie-orange); }
+        .outcome-btn.ncsu-win .btn-label { color: var(--ncsu-red); }
+
+        .btn-prob {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .btn-delta {
+            font-size: 0.55rem;
+            font-weight: 600;
+            margin-top: 1px;
+        }
+        .btn-delta.up { color: var(--success); }
+        .btn-delta.down { color: var(--ncsu-red); }
+
+        .match-ev {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1rem;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-left: 8px;
+        }
+        .match-ev.positive { background: rgba(34,197,94,0.2); color: var(--success); }
+        .match-ev.negative { background: rgba(204,0,0,0.2); color: var(--ncsu-red); }
 
         /* Paths */
         .path-item {
@@ -697,17 +729,94 @@ function updateDiffChart(diffProbs) {
     document.getElementById('diffChart').innerHTML = html;
 }
 
+function calcConditionalVTWin(matchIdx, outcomeIdx) {
+    // Calculate VT win prob if this specific outcome occurs
+    let dp = {0: 1.0};
+    for (let m = 0; m < 10; m++) {
+        let newDp = {};
+        const probs = MATCHES[m].probs;
+        if (realized[m] !== null) {
+            const outcome = OUTCOMES[realized[m]];
+            for (const [d, p] of Object.entries(dp)) {
+                const newD = parseInt(d) + outcome;
+                newDp[newD] = (newDp[newD] || 0) + p;
+            }
+        } else if (m === matchIdx) {
+            // Force this specific outcome
+            const outcome = OUTCOMES[outcomeIdx];
+            for (const [d, p] of Object.entries(dp)) {
+                const newD = parseInt(d) + outcome;
+                newDp[newD] = (newDp[newD] || 0) + p;
+            }
+        } else {
+            for (const [d, p] of Object.entries(dp)) {
+                for (let o = 0; o < 8; o++) {
+                    const newD = parseInt(d) + OUTCOMES[o];
+                    newDp[newD] = (newDp[newD] || 0) + p * probs[o] / 100;
+                }
+            }
+        }
+        dp = newDp;
+    }
+    let vtWin = 0;
+    for (const [d, p] of Object.entries(dp)) {
+        if (parseInt(d) > 0) vtWin += p;
+    }
+    return vtWin;
+}
+
+function calcMatchEV(matchIdx) {
+    const probs = MATCHES[matchIdx].probs;
+    let ev = 0;
+    for (let o = 0; o < 8; o++) {
+        ev += OUTCOMES[o] * probs[o] / 100;
+    }
+    return ev;
+}
+
 function updateMatchList() {
+    const baseDiff = computeDiffProbs();
+    const baseWin = calcWinProbs(baseDiff);
+    const baseVT = baseWin.vt;
+
     let html = '';
     for (let m = 0; m < 10; m++) {
         const match = MATCHES[m];
+        const ev = calcMatchEV(m);
+        const evCls = ev >= 0 ? 'positive' : 'negative';
+        const evStr = (ev >= 0 ? '+' : '') + ev.toFixed(1);
+
         let btns = '';
         for (let o = 0; o < 8; o++) {
             const sel = realized[m] === o;
             const cls = o < 4 ? 'ncsu-win' : 'vt-win';
-            btns += '<div class="outcome-btn ' + cls + (sel ? ' selected' : '') + '" onclick="toggleOutcome(' + m + ',' + o + ')">' + LABELS[o] + '</div>';
+            const prob = match.probs[o];
+
+            // Calculate conditional VT win if this outcome isn't already locked
+            let deltaStr = '';
+            if (realized[m] === null) {
+                const condVT = calcConditionalVTWin(m, o);
+                const delta = (condVT - baseVT) * 100;
+                const deltaCls = delta >= 0 ? 'up' : 'down';
+                deltaStr = '<div class="btn-delta ' + deltaCls + '">' + (delta >= 0 ? '+' : '') + delta.toFixed(1) + '%</div>';
+            }
+
+            btns += '<div class="outcome-btn ' + cls + (sel ? ' selected' : '') + '" onclick="toggleOutcome(' + m + ',' + o + ')">' +
+                '<div class="btn-label">' + LABELS[o] + '</div>' +
+                '<div class="btn-prob">' + prob.toFixed(1) + '%</div>' +
+                deltaStr +
+                '</div>';
         }
-        html += '<div class="match-item"><div class="match-header"><div class="match-weight">' + match.weight + ' LBS</div><div class="match-wrestlers"><span class="vt">' + match.vt + '</span> vs <span class="ncsu">' + match.ncsu + '</span></div></div><div class="outcomes-row">' + btns + '</div></div>';
+        html += '<div class="match-item">' +
+            '<div class="match-header">' +
+                '<div style="display:flex;align-items:center;">' +
+                    '<div class="match-weight">' + match.weight + ' LBS</div>' +
+                    '<div class="match-ev ' + evCls + '">EV ' + evStr + '</div>' +
+                '</div>' +
+                '<div class="match-wrestlers"><span class="vt">' + match.vt + '</span> vs <span class="ncsu">' + match.ncsu + '</span></div>' +
+            '</div>' +
+            '<div class="outcomes-row">' + btns + '</div>' +
+            '</div>';
     }
     document.getElementById('matchList').innerHTML = html;
 }
