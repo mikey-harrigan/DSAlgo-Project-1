@@ -8,8 +8,8 @@
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "cd server && node --watch index.js",
     "dev:client": "cd client && npx vite",
-    "build": "cd client && npx vite build",
-    "start": "cd server && node index.js",
+    "build": "cd client && npm install && npx vite build && cd ../server && node seed.js",
+    "start": "node server/index.js",
     "seed": "cd server && node seed.js",
     "scrape": "cd server && node scrapers/run.js"
   },
