@@ -47,7 +47,13 @@ app.get('*', (req, res) => {
 });
 
 // Initialize DB on startup
-getDb();
+try {
+  getDb();
+  console.log('Database initialized successfully');
+} catch (err) {
+  console.error('Failed to initialize database:', err.message);
+  process.exit(1);
+}
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`noBall server running on http://0.0.0.0:${PORT}`);
