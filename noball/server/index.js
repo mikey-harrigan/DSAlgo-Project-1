@@ -49,8 +49,8 @@ app.get('*', (req, res) => {
 // Initialize DB on startup
 getDb();
 
-app.listen(PORT, () => {
-  console.log(`noBall server running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`noBall server running on http://0.0.0.0:${PORT}`);
 });
 
 export default app;
