@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: noball
+    runtime: node
+    rootDir: noball
+    buildCommand: npm install && cd client && npm install && npx vite build && cd ../server && node seed.js
+    startCommand: node server/index.js
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: JWT_SECRET
+        generateValue: true
